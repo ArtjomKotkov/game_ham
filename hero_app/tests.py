@@ -14,21 +14,18 @@ class TestHeroes(TestCase):
         archer = Heroes.Archer.create(self.user)
         archer_model = Hero.objects.get(user=self.user)
         self.assertEqual(archer.hero, archer_model)
-        print(f'{archer.default_attack=}')
         self.assertEqual(archer.default_attack, archer_model.attack)
 
     def test_knight(self):
         knight = Heroes.Knight.create(self.user)
         knight_model = Hero.objects.get(user=self.user)
         self.assertEqual(knight.hero, knight_model)
-        print(f'{knight.default_attack=}')
         self.assertEqual(knight.default_attack, knight_model.attack)
 
     def test_wizard(self):
         wizard = Heroes.Wizard.create(self.user)
         wizard_model = Hero.objects.get(user=self.user)
         self.assertEqual(wizard.hero, wizard_model)
-        print(f'{wizard.default_attack=}')
         self.assertEqual(wizard.default_attack, wizard_model.attack)
 
 class TestHeroesMethods(TestCase):
