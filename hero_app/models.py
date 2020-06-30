@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator
 
 
 class Hero(models.Model):
+    name = models.CharField(max_length=24, default='Странник')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='heroes')
     attack = models.IntegerField(default=0)
     defense = models.IntegerField(default=0)
@@ -47,9 +48,6 @@ class Spell(models.Model):
                     else:
                         self.height = self.width
         return super().save(*args, **kwargs)
-
-    def admin_page(self):
-        pass
 
 
 

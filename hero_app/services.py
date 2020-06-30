@@ -105,7 +105,6 @@ class HeroesCreate(HeroABS):
         setattr(instance, 'hero', hero)
         return instance
 
-
 class HeroesLoad(HeroABS):
 
     @classmethod
