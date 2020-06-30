@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 
-from .models import Hero, Spell, SpellTome
+from .models import Hero, Spell, SpellTome, DefaultHero
 
 
 class Spells(admin.ModelAdmin):
@@ -75,6 +75,7 @@ class Heroes(admin.ModelAdmin):
 admin.site.register(Hero, Heroes)
 admin.site.register(SpellTome, SpellTomes)
 admin.site.register(Spell, Spells)
+admin.site.register(DefaultHero)
 
 
 def in_circle(x, y, radius):

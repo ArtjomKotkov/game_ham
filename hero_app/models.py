@@ -3,6 +3,17 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
 
+class DefaultHero(models.Model):
+    name = models.CharField(max_length=24, unique=True)
+    attack = models.IntegerField(default=1)
+    defense = models.IntegerField(default=0)
+    mana = models.IntegerField(default=0)
+    spell_power = models.IntegerField(default=0)
+    initiative = models.FloatField(default=10)
+
+    def __str__(self):
+        return self.name
+
 class Hero(models.Model):
     name = models.CharField(max_length=24, default='Странник')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='heroes')
@@ -22,6 +33,7 @@ class SpellTome(models.Model):
 class Spell(models.Model):
     tome = models.ForeignKey(SpellTome, related_name='spells', on_delete=models.SET_NULL, null=True)
     hero = models.ManyToManyField(Hero, related_name='spells', blank=True)
+    default_hero = models.ManyToManyField(DefaultHero, related_name='spells', blank=True)
     name = models.CharField(max_length=30, unique=True)
     short_name = models.CharField(max_length=16, unique=True)
     description = models.TextField()
