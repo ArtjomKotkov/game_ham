@@ -8,14 +8,12 @@ from .services import Heroes
 
 # Spells serializers.
 class SpellShortSerializer(serializers.ModelSerializer):
-    tome = serializers.SlugRelatedField(many=False, read_only=True, slug_field='name')
 
     class Meta:
         model = Spell
         fields = ['id', 'name', 'tome']
 
 class SpellFullSerializer(serializers.ModelSerializer):
-    tome = serializers.SlugRelatedField(many=False, read_only=True, slug_field='name')
 
     class Meta:
         model = Spell
