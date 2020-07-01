@@ -16,7 +16,7 @@ class DefaultHero(models.Model):
 
 class Hero(models.Model):
     name = models.CharField(max_length=24, default='Странник')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='heroes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='heroes', blank=True)
     attack = models.IntegerField(default=0)
     defense = models.IntegerField(default=0)
     mana = models.IntegerField(default=0)

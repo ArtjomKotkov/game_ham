@@ -6,8 +6,8 @@ from .models import Hero, Spell, SpellTome, DefaultHero
 
 
 class Spells(admin.ModelAdmin):
-    list_display = ('tome', 'name', 'description', 'damage_per_tail',
-                    'scheme', 'height', 'width', 'html_scheme')
+    list_display = ('id', 'name', 'description', 'damage_per_tail',
+                    'scheme', 'height', 'width', 'tome', 'html_scheme')
     ordering = ('tome',)
 
     def html_scheme(self, obj):

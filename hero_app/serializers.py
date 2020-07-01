@@ -1,6 +1,6 @@
 import re
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import Hero, Spell, SpellTome
@@ -60,19 +60,6 @@ class CharOrIntField(serializers.Field):
         return int(value) if not self.is_str else str(value)
 
 # Hero serializers.
-class HeroCreateSerializer(serializers.Serializer):
-
-    user = serializers.IntegerField(write_only=True)
-    name = serializers.CharField(max_length=24)
-    hero_class = CharOrIntField(write_only=True, allow_null=True, required=False)
-
-    def create(self, validated_data):
-        hero = Heroes.objects.create(user_id=validated_data.get('user'),
-                      hero_name=validated_data.get('name'),
-                      hero_class=validated_data.get('hero_class', None))
-        return hero.get_hero()
-
-
 class HeroShortSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -80,11 +67,46 @@ class HeroShortSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class HeroFullSerializer(serializers.ModelSerializer):
-
+    """
+    Spells fields in update methods must looks like:
+    {
+        "spells":{
+            "remove":[...], | Delete spells from hero.
+            "add":[...],    | Add spells to hero.
+            "set":[...],    | Set hero spells.
+        }
+    }
+    """
     spells = SpellShortSerializer(many=True, read_only=True)
-    user = serializers.SlugRelatedField(many=False, read_only=True, slug_field='username')
+    hero_class = CharOrIntField(write_only=True, allow_null=True, required=False)
+    spells_manager = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Hero
         fields = ['id', 'user', 'name', 'attack', 'defense',
-                  'mana', 'spell_power', 'initiative', 'spells']
+                  'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager']
+
+    def create(self, validated_data):
+        hero = Heroes.objects.create(user=validated_data.get('user', None),
+                                     hero_name=validated_data.get('name', None),
+                                     hero_class=validated_data.get('hero_class', None))
+        return hero.get_hero()
+
+    def update(self, instance, validated_data):
+        if 'hero_class' in validated_data:
+            del validated_data['hero_class']
+        hero = super().update(instance, validated_data)
+        if spells:= validated_data.get('spells_manager', None):
+            remove = spells.get('remove', None)
+            add = spells.get('add', None)
+            set = spells.get('set', None)
+            if remove:
+                spells = Spell.objects.filter(id__in=remove)
+                hero.spells.remove(*spells)
+            if add:
+                spells = Spell.objects.filter(id__in=add)
+                hero.spells.add(*spells)
+            if set:
+                spells = Spell.objects.filter(id__in=set)
+                hero.spells.set(spells, clear=True)
+        return hero

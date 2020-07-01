@@ -125,12 +125,8 @@ class HeroesCreate(HeroABS):
         return hero
 
     @classmethod
-    def create(cls, user_id, hero_name, hero_class=None):
+    def create(cls, user, hero_name, hero_class=None):
         instance = cls.__new__(cls)
-        try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-           raise serializers.ValidationError('User doesn\'t exist.')
         if user.heroes.count() >= 3:
             raise serializers.ValidationError('User can\'t have more then 3 heroes')
         if not hero_class:
