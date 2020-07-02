@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-
 from .models import Hero, Spell, SpellTome, DefaultHero
 
 
@@ -71,6 +70,7 @@ class Heroes(admin.ModelAdmin):
             li_list += f'<li><a href="{reverse("admin:hero_app_spell_change", args=(spell.id,))}">{spell.name}</a></li>'
         li_list = '<ul>' + li_list + '</ul>'
         return format_html(li_list)
+
 
 admin.site.register(Hero, Heroes)
 admin.site.register(SpellTome, SpellTomes)

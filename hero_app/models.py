@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator
 
 class DefaultHero(models.Model):
     name = models.CharField(max_length=24, unique=True)
+    human_name = models.CharField(max_length=36, unique=True)
     attack = models.IntegerField(default=1)
     defense = models.IntegerField(default=0)
     mana = models.IntegerField(default=0)
@@ -23,6 +24,9 @@ class Hero(models.Model):
     spell_power = models.IntegerField(default=0)
     initiative = models.FloatField(default=0)
     # Spells as self model, with foreignkey.
+
+    def __str__(self):
+        return f'{self.user.username}-{self.name}'
 
 class SpellTome(models.Model):
     name = models.CharField(max_length=30)
@@ -60,7 +64,4 @@ class Spell(models.Model):
                     else:
                         self.height = self.width
         return super().save(*args, **kwargs)
-
-
-
 

@@ -4,8 +4,11 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth.models import User
 
-from .serializers import HeroShortSerializer, HeroFullSerializer, SpellShortSerializer, SpellFullSerializer
-from .models import Hero, Spell
+from .serializers import HeroShortSerializer, HeroFullSerializer,\
+    SpellShortSerializer, SpellFullSerializer, \
+    SpellTomeFullSerializer, SpellTomeShortSerializer, \
+    DefaultHeroFullSerializer, DefaultHeroShortSerializer
+from .models import Hero, Spell, SpellTome, DefaultHero
 from .services import Heroes
 
 
@@ -20,12 +23,14 @@ def query_list_to_list_of_int(string: str, delimiter: str):
             pass
     return result
 
-def make_serializer(mode, short_serializer, full_serializer, model, many:bool):
+
+def make_serializer(mode, short_serializer, full_serializer, model, many: bool):
     if mode == 'false':
         serializer = full_serializer(model, many=many)
     else:
         serializer = short_serializer(model, many=many)
     return serializer
+
 
 class CustomAPIView(APIView):
     short_serializer = None
@@ -101,3 +106,13 @@ class SpellsApi(CustomAPIView):
     short_serializer = SpellShortSerializer
     full_serializer = SpellFullSerializer
     model = Spell
+
+class SpelTomesApi(CustomAPIView):
+    short_serializer = SpellTomeShortSerializer
+    full_serializer = SpellTomeFullSerializer
+    model = SpellTome
+
+class DefaultHeroApi(CustomAPIView):
+    short_serializer = DefaultHeroShortSerializer
+    full_serializer = DefaultHeroFullSerializer
+    model = DefaultHero

@@ -3,7 +3,7 @@ import re
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Hero, Spell, SpellTome
+from .models import Hero, Spell, SpellTome, DefaultHero
 from .services import Heroes
 
 # Spells serializers.
@@ -108,3 +108,19 @@ class HeroFullSerializer(serializers.ModelSerializer):
                 spells = Spell.objects.filter(id__in=set)
                 hero.spells.set(spells, clear=True)
         return hero
+
+# Default hero serializers.
+class DefaultHeroShortSerializer(serializers.ModelSerializer):
+
+    spells = SpellShortSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = DefaultHero
+        fields = ['id', 'name', 'spells']
+
+class DefaultHeroFullSerializer(serializers.ModelSerializer):
+    spells = SpellFullSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = DefaultHero
+        fields = ['id', 'name', 'human_name', 'attack', 'defense', 'mana', 'spell_power', 'initiative', 'spells']
