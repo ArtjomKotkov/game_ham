@@ -23,6 +23,7 @@ class Hero(models.Model):
     mana = models.IntegerField(default=0)
     spell_power = models.IntegerField(default=0)
     initiative = models.FloatField(default=0)
+    in_battle = models.BooleanField(default=False)
     # Spells as self model, with foreignkey.
 
     def __str__(self):

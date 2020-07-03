@@ -60,7 +60,8 @@ class SpellTomes(admin.ModelAdmin):
 
 
 class Heroes(admin.ModelAdmin):
-    list_display = ('user', 'attack', 'defense', 'mana', 'spell_power', 'initiative', 'ListOfSpells')
+    list_display = (
+    'id', 'user', 'name', 'attack', 'defense', 'mana', 'spell_power', 'initiative', 'ListOfSpells')
     ordering = ('user',)
 
     def ListOfSpells(self, obj):
