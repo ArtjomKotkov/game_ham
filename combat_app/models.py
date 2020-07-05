@@ -14,6 +14,12 @@ TYPES_COMBAT = (
         ('MG', 'MeatGrinder')
     )
 
+class Field(models.Model):
+    name = models.CharField(max_length=15)
+    height = models.IntegerField(validators=[MinValueValidator(0)])
+    width = models.IntegerField(validators=[MinValueValidator(0)])
+    #obstacles = JSONField()
+
 class Combat(models.Model):
     name = models.CharField(max_length=16)
     datetime = models.DateTimeField(auto_now_add=True)
@@ -25,10 +31,8 @@ class Combat(models.Model):
     right_team = models.ManyToManyField(Hero, blank=True, related_name='rt')
     mg_team = models.ManyToManyField(Hero, blank=True, related_name='mgt')
     team_size = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)], default=1, null=True)
-    hero_placement_height = models.IntegerField()
-    field_height = models.IntegerField()
-    field_width = models.IntegerField()
     started = models.BooleanField(default=False)
+    field = models.ForeignKey(Field, on_delete=models.SET_NULL, null=True)
 
     def save(self, *args, **kwargs):
         if self.battle_type == 'DF':
@@ -36,3 +40,4 @@ class Combat(models.Model):
         if self.battle_type == 'MG':
             assert self.team_size >= 3, 'In meat grinder battle type, team size can\'t be less then 3'
         return super().save(*args, **kwargs)
+
