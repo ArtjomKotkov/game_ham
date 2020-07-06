@@ -24,6 +24,7 @@ class Hero(models.Model):
     spell_power = models.IntegerField(default=0)
     initiative = models.FloatField(default=0)
     in_battle = models.BooleanField(default=False)
+    army = models.JSONField(null=True)
     # Spells as self model, with foreignkey.
 
     def __str__(self):

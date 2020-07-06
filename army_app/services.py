@@ -1,17 +1,17 @@
 import random
-
+from .units import UNIT_CLASSES
 
 class Stack:
 
-    def __init__(self, unit_class, count: int, x: int, y: int):
+    def __init__(self, unit_class, count: int):
         self.unit = unit_class
         self.start_count = count
         self.count = self.start_count
         self.alive = True if self.count > 0 else False
         self.answer = True
         self.last_unit_health = self.unit.health
-        self.x_pos = x
-        self.y_pos = y
+        self.x_pos = 0
+        self.y_pos = 0
         for item, value in self.unit().__dict__().items():
             setattr(self, item, value)
         self.bufs = []
@@ -72,6 +72,9 @@ class Stack:
     def attack(self, enemy):
         return self.unit.attack(self, enemy)
 
+    def move(self, x, y):
+        self.x_pos, self.y_pos = self.unit.move(self, self.x_pos, self.y_pos, x, y)
+
     def __str__(self):
         return self.name
 
@@ -80,9 +83,18 @@ class Army:
         self.units = {}
         self.max_id = None
 
+
     @classmethod
-    def load_army(cls, Hero):
-        pass
+    def load_army(cls, hero_instance):
+        instance = cls.__new__(cls)
+        setattr(instance, 'units', {})
+        setattr(instance, 'max_id', None)
+        for unit, count in hero_instance.get_hero().army.items():
+            assert unit in UNIT_CLASSES, f'Invalid unit class [{unit}]'
+            stack = Stack(UNIT_CLASSES[unit], count)
+            instance.add_stack(stack)
+        setattr(hero_instance, 'combat_army', instance)
+        return instance
 
     def increase_max_id(self):
         if self.max_id != None:
@@ -98,11 +110,16 @@ class Army:
 
     def split_stack(self, id, count):
         self.units[id].add_unit(-count)
-        new_stack = Stack(self.units[id].unit, count, 0, 0)
+        new_stack = Stack(self.units[id].unit, count)
         self.add_stack(new_stack)
 
     def del_stack(self, id):
+        assert id in self.units, f'No stack with id {id}.'
         del self.units[id]
+
+    def get_stack(self, id):
+        assert id in self.units, f'No stack with id {id}.'
+        return self.units[id]
 
     def __dict__(self):
         output_dict =  {
@@ -112,21 +129,3 @@ class Army:
             output_dict.update({id:unit.__dict__})
         return output_dict
 
-if __name__ == '__main__':
-    from units import ElfArcher, Archer
-
-    a = Stack(ElfArcher, 12, 12, 12)
-    b = Stack(Archer, 25, 12 ,12)
-
-    army = Army()
-    army.add_stack(a)
-    army.add_stack(b)
-    import pprint
-    c = a.attack(b)
-    pprint.pprint(c)
-    print('')
-    g = b.attack(a)
-    pprint.pprint(g)
-    print('')
-    h = b.attack(a)
-    pprint.pprint(h)

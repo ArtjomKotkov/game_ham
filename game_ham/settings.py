@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'user_app',
     'rest_framework',
     'main_app',
-    'combat_app'
+    'combat_app',
+    'army_app'
 ]
 
 MIDDLEWARE = [
@@ -80,8 +81,12 @@ WSGI_APPLICATION = 'game_ham.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'django',
+        'USER' : 'postgres',
+        'PASSWORD' : '190898',
+        'HOST' : '127.0.0.1',
+        'PORT' : '5432',
     }
 }
 

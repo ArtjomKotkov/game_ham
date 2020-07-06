@@ -1,12 +1,10 @@
-# from .services import Stack
-from services import Stack
-
 
 def add_or_create_list_in_dict(dict_: dict, key: str, value):
     if not key in dict_:
         dict_[key] = [value]
     else:
         dict_[key].append(value)
+
 
 class UnitABS:
     name = 'abs'
@@ -32,7 +30,16 @@ class UnitABS:
         )
 
     @classmethod
-    def base_attack(cls, self_unit: Stack, enemy_unit: Stack):
+    def pos_in_step_radius(cls, from_x, from_y, to_x, to_y):
+        return True if ((to_x - from_x)**2+(to_y-from_y)**2)**(1/2) <= cls.speed else False
+
+    @classmethod
+    def base_movement(cls, from_x, from_y, to_x, to_y):
+        assert cls.pos_in_step_radius(from_x, from_y, to_x, to_y), 'New position not in radius.'
+        return to_x, to_y
+
+    @classmethod
+    def base_attack(cls, self_unit, enemy_unit):
         damage, killed_units = enemy_unit.take_damage(self_unit)
         output = {
             'enemy': {
@@ -53,7 +60,7 @@ class UnitABS:
         return output
 
     @classmethod
-    def answer_attack(cls, self_unit: Stack, enemy_unit: Stack):
+    def answer_attack(cls, self_unit, enemy_unit):
         output = {}
         if self_unit.answer and self_unit.alive:
             damage, killed_units = enemy_unit.take_damage(self_unit)
@@ -67,7 +74,7 @@ class UnitABS:
         return output
 
     @classmethod
-    def double_attack(cls, self_unit: Stack, enemy_unit: Stack):
+    def double_attack(cls, self_unit, enemy_unit):
         output = cls.base_attack(self_unit, enemy_unit)
         damage, killed_units = enemy_unit.take_damage(self_unit)
         output['enemy']['damage'].append(damage)
@@ -94,12 +101,12 @@ class Archer(UnitABS):
     attack_distance = 60
 
     @classmethod
-    def attack(cls, self_unit: Stack, enemy_unit: Stack):
+    def attack(cls, self_unit, enemy_unit):
         return cls.base_attack(self_unit, enemy_unit)
 
 
-class ElfArcher(UnitABS):
-    name = 'ElfArcher'
+class ElFArcher(UnitABS):
+    name = 'ELFArcher'
     image = None
     health = 8
     min_attack = 12
@@ -110,5 +117,9 @@ class ElfArcher(UnitABS):
     attack_distance = 60
 
     @classmethod
-    def attack(cls, self_unit: Stack, enemy_unit: Stack):
+    def attack(cls, self_unit, enemy_unit):
         return cls.double_attack(self_unit, enemy_unit)
+
+
+_UNIT_CLASSES_LIST = [Archer, ElFArcher]
+UNIT_CLASSES = {class_.name: class_ for class_ in _UNIT_CLASSES_LIST}

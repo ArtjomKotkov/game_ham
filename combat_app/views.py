@@ -16,7 +16,6 @@ class Income(View):
         data = request.GET
         team = data.get('team')
         combat = Combats().load(get_object_or_404(Combat, pk=pk))
-        print(combat.__dict__)
         if team == 'left':
             combat.add_hero_to_left_team(request.user.heroapp.selected_hero)
         elif team == 'right':

@@ -145,9 +145,8 @@ class HeroesCreate(HeroABS):
         return instance
 
     @classmethod
-    def load_hero(cls, pk):
+    def load_hero(cls, hero):
         instance = cls.__new__(cls)
-        hero = Hero.objects.get(pk=pk)
         setattr(instance, 'hero', hero)
         return instance
 
