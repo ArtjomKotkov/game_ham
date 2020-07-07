@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views.generic import View, ListView
 from django.shortcuts import get_object_or_404, redirect, reverse
 
-from .services import Combats
+from .combat import Combats
 from .models import Combat
 
 

@@ -153,6 +153,9 @@ class HeroesCreate(HeroABS):
     def get_hero(self):
         return self.hero if hasattr(self, 'hero') else None
 
+    def get_army(self):
+        return self.combat_army if hasattr(self, 'combat_army') else None
+
 class Heroes:
 
     class objects(HeroesCreate):

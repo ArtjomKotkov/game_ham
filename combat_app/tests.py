@@ -3,12 +3,12 @@ import json
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from .models import Combat, Field
-from .services import Combats, Fields
 from hero_app.services import Heroes
-from army_app.services import Stack, Army
-from army_app.units import Archer, ElFArcher
-
+from .models import Combat, Field
+from .combat import Combats
+from .field import Fields
+from .army import Stack, Army
+from .units import Archer, ElFArcher
 
 class TestCombat(TestCase):
 
@@ -40,4 +40,5 @@ class TestCombat(TestCase):
     def test_combat(self):
         import pprint
         pprint.pprint(self.combat.__dict__)
-        pprint.pprint(self.combat.heroes[0].combat_army.units[1].attack(self.combat.heroes[1].combat_army.units[0]))
+
+        pprint.pprint(self.combat.get_stack(0, 0).attack(self.combat.get_stack(1, 1)))
