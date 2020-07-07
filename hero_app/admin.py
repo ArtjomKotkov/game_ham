@@ -1,13 +1,12 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-
-from .models import Hero, Spell, SpellTome
+from .models import Hero, Spell, SpellTome, DefaultHero
 
 
 class Spells(admin.ModelAdmin):
-    list_display = ('tome', 'name', 'description', 'damage_per_tail',
-                    'scheme', 'height', 'width', 'html_scheme')
+    list_display = ('id', 'name', 'description', 'damage_per_tail',
+                    'scheme', 'height', 'width', 'tome', 'html_scheme')
     ordering = ('tome',)
 
     def html_scheme(self, obj):
@@ -61,7 +60,8 @@ class SpellTomes(admin.ModelAdmin):
 
 
 class Heroes(admin.ModelAdmin):
-    list_display = ('user', 'attack', 'defense', 'mana', 'spell_power', 'initiative', 'ListOfSpells')
+    list_display = (
+    'id', 'user', 'name', 'attack', 'defense', 'mana', 'spell_power', 'initiative', 'ListOfSpells')
     ordering = ('user',)
 
     def ListOfSpells(self, obj):
@@ -72,9 +72,11 @@ class Heroes(admin.ModelAdmin):
         li_list = '<ul>' + li_list + '</ul>'
         return format_html(li_list)
 
+
 admin.site.register(Hero, Heroes)
 admin.site.register(SpellTome, SpellTomes)
 admin.site.register(Spell, Spells)
+admin.site.register(DefaultHero)
 
 
 def in_circle(x, y, radius):

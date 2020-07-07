@@ -1,14 +1,20 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 from django.contrib.auth.models import User
 
-from .serializers import HeroShortSerializer, HeroFullSerializer
-from .models import Hero
+from .serializers import HeroShortSerializer, HeroFullSerializer,\
+    SpellShortSerializer, SpellFullSerializer, \
+    SpellTomeFullSerializer, SpellTomeShortSerializer, \
+    DefaultHeroFullSerializer, DefaultHeroShortSerializer
+from .models import Hero, Spell, SpellTome, DefaultHero
 from .services import Heroes
+
+
 # All api views provides short and full mode, that can be set in GET params as short=true/false.
 
-def query_list_to_list_of_int(string:str, delimiter:str):
+def query_list_to_list_of_int(string: str, delimiter: str):
     result = []
     for elem in string.split(delimiter):
         try:
@@ -17,37 +23,96 @@ def query_list_to_list_of_int(string:str, delimiter:str):
             pass
     return result
 
-class HeroApi(APIView):
-    """
-    Hero API.
-    Params:
-        -ids: list[int] ids which heroes need to return| scheme ids=1,2,3,4,5
-    """
-    def get(self, request):
+
+def make_serializer(mode, short_serializer, full_serializer, model, many: bool):
+    if mode == 'false':
+        serializer = full_serializer(model, many=many)
+    else:
+        serializer = short_serializer(model, many=many)
+    return serializer
+
+
+class CustomAPIView(APIView):
+    short_serializer = None
+    full_serializer = None
+    model = None
+
+    def get(self, request, pk=None):
         data = request.GET
         mode = data.get('short', 'false')
         ids = data.get('ids', None)
-        if ids:
-            heroes = Hero.objects.filter(id__in=query_list_to_list_of_int(ids, ','))
-        else:
-            heroes = Hero.objects.all()
-        if mode == 'false':
-            serializer = HeroFullSerializer(heroes, many=True)
-        else:
-            serializer = HeroShortSerializer(heroes, many=True)
+        user_id = data.get('user_id', None)
+        if pk:
+            try:
+                instance = self.model.objects.get(pk=pk)
+            except self.model.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            serializer = make_serializer(mode, self.short_serializer, self.full_serializer, instance, False)
+            return Response(serializer.data, status=200)
+        try:
+            user = User.objects.get(pk=int(user_id))
+            instances = self.model.objects.filter(user=user)
+        except (TypeError, ValueError):
+            if ids:
+                instances = self.model.objects.filter(id__in=query_list_to_list_of_int(ids, ','))
+            else:
+                instances = self.model.objects.all()
+        except self.model.DoesNotExist:
+            instances = None
+        serializer = make_serializer(mode, self.short_serializer, self.full_serializer, instances, True)
         return Response(serializer.data, status=200)
 
     def post(self, request):
-        """
-        Create hero for user with id = user_id.
-        Params:
-            -hero_class: archer, knight, wizard
-        """
-        data = request.POST
-        hero_class = data.get('hero_class', None)
-        user = data.get('user_id', None)
-        if not user:
-            return Response(dict(status='Request error'), status=400)
+        data = request.GET
+        mode = data.get('short', 'false')
+        serializer = self.full_serializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            serializer_output = make_serializer(mode, self.short_serializer, self.full_serializer, instance, False)
+            return Response(serializer_output.data, status=201)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        data = request.GET
+        mode = data.get('short', 'false')
+        try:
+            instance = self.model.objects.get(pk=pk)
+        except self.model.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = self.full_serializer(data=request.data, instance=instance)
+        if serializer.is_valid():
+            instance = serializer.save()
+            serializer_output = make_serializer(mode, self.short_serializer, self.full_serializer, instance, False)
+            return Response(serializer_output.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        try:
+            instance = self.model.objects.get(pk=pk)
+        except self.model.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
+class HeroApi(CustomAPIView):
+    short_serializer = HeroShortSerializer
+    full_serializer = HeroFullSerializer
+    model = Hero
 
+class SpellsApi(CustomAPIView):
+    short_serializer = SpellShortSerializer
+    full_serializer = SpellFullSerializer
+    model = Spell
+
+class SpelTomesApi(CustomAPIView):
+    short_serializer = SpellTomeShortSerializer
+    full_serializer = SpellTomeFullSerializer
+    model = SpellTome
+
+class DefaultHeroApi(CustomAPIView):
+    short_serializer = DefaultHeroShortSerializer
+    full_serializer = DefaultHeroFullSerializer
+    model = DefaultHero

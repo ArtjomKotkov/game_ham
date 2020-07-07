@@ -1,12 +1,17 @@
-from .models import Hero, Spell
+from django.db.models import Q
+from django.contrib.auth.models import User
+
+from rest_framework import serializers
+
+from .models import Hero, Spell, DefaultHero
 
 
 class HeroABS:
-    default_attack = 5
+    default_attack = 0
     default_defense = 0
     default_mana = 0
     default_spell_power = 0
-    default_initiative = 10
+    default_initiative = 0
 
     def add_attack(self, value:int):
         if hasattr(self, 'hero'):
@@ -92,51 +97,66 @@ class HeroABS:
 class HeroesCreate(HeroABS):
 
     @classmethod
-    def create(cls, user):
-        instance = cls.__new__(cls)
+    def create_empty_hero(cls, user, hero_name):
         hero = Hero.objects.create(
             user=user,
+            name=hero_name,
             attack=cls.default_attack,
             defense=cls.default_attack,
             mana=cls.default_mana,
             spell_power=cls.default_spell_power,
             initiative=cls.default_initiative,
         )
-        setattr(instance, 'hero', hero)
-        return instance
-
-class HeroesLoad(HeroABS):
+        return hero
 
     @classmethod
-    def load_hero(cls, pk):
+    def create_hero(cls, user, default_hero, hero_name):
+        hero = Hero.objects.create(
+            user=user,
+            name=hero_name,
+            attack=default_hero.attack,
+            defense=default_hero.defense,
+            mana=default_hero.mana,
+            spell_power=default_hero.spell_power,
+            initiative=default_hero.initiative,
+        )
+        hero.spells.add(*default_hero.spells.all())
+        hero.save()
+        return hero
+
+    @classmethod
+    def create(cls, user, hero_name, hero_class=None):
         instance = cls.__new__(cls)
-        hero = Hero.objects.get(pk=pk)
+        if user.heroes.count() >= 3:
+            raise serializers.ValidationError('User can\'t have more then 3 heroes')
+        if not hero_class:
+            hero = HeroesCreate.create_empty_hero(user, hero_name)
+        else:
+            try:
+                try:
+                    id = int(hero_class)
+                except (TypeError, ValueError):
+                    id = None
+                default_hero = DefaultHero.objects.get(Q(name__iexact=hero_class) | Q(id=id))
+                hero = HeroesCreate.create_hero(user, default_hero, hero_name)
+            except DefaultHero.DoesNotExist:
+                hero = HeroesCreate.create_empty_hero(user, hero_name)
         setattr(instance, 'hero', hero)
         return instance
 
+    @classmethod
+    def load_hero(cls, hero):
+        instance = cls.__new__(cls)
+        setattr(instance, 'hero', hero)
+        return instance
+
+    def get_hero(self):
+        return self.hero if hasattr(self, 'hero') else None
+
+    def get_army(self):
+        return self.combat_army if hasattr(self, 'combat_army') else None
 
 class Heroes:
 
-    class Archer(HeroesCreate):
-        default_attack = 14
-        default_defense = 2
-        default_mana = 0
-        default_spell_power = 0
-        default_initiative = 15
-
-    class Knight(HeroesCreate):
-        default_attack = 5
-        default_defense = 20
-        default_mana = 0
-        default_spell_power = 0
-        default_initiative = 12
-
-    class Wizard(HeroesCreate):
-        default_attack = 3
-        default_defense = 4
-        default_mana = 30
-        default_spell_power = 5
-        default_initiative = 13.5
-
-    class Objects(HeroesLoad):
+    class objects(HeroesCreate):
         pass

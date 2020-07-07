@@ -1,0 +1,27 @@
+{% extends 'basic.html' %}
+
+{% block title %}Register page.{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'main_app:auth' %}" method="POST">
+    {% csrf_token %}
+    <div class="d-flex flex-column">
+        {% for item in form %}
+            <div class="form-group">
+                <div class="w-50 d-inline">
+                    {{item.label}}
+                </div>
+                <div class="w-50 d-inline">
+                    {{item}}
+                </div>
+                <div class="w-50 d-inline">
+                    {{item.errors}}
+                </div>
+            </div>
+        {% endfor %}
+        <input type="submit" class="btn btn-primary" value="Отправить">
+    </div>
+</form>
+
+{% endblock %}
