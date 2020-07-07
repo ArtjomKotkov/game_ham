@@ -5,7 +5,6 @@ def add_or_create_list_in_dict(dict_: dict, key: str, value):
     else:
         dict_[key].append(value)
 
-
 class UnitABS:
     name = 'abs'
     image = None
@@ -39,50 +38,41 @@ class UnitABS:
         return to_x, to_y
 
     @classmethod
+    def answer_attack(cls, self_unit, enemy_unit):
+        output = {}
+        if self_unit.answer and self_unit.alive:
+            self_unit.answer = False
+            damage, killed_units = enemy_unit.take_damage(self_unit)
+            output['self'] = {
+                'get_damage': [damage],
+                'killed_units': [killed_units]
+            }
+            add_or_create_list_in_dict(output, 'modify', 'answer')
+        return output
+
+    # Attack modificators.
+
+    @classmethod
     def base_attack(cls, self_unit, enemy_unit):
         damage, killed_units = enemy_unit.take_damage(self_unit)
         output = {
             'enemy': {
-                'damage': [damage],
+                'get_damage': [damage],
                 'killed_units': [killed_units]
             },
         }
-        if enemy_unit.answer and enemy_unit.alive:
-            enemy_unit.answer = False
-            damage_enemy, killed_units_enemy = self_unit.take_damage(enemy_unit)
-            output.update({
-                'self': {
-                    'damage': [damage_enemy],
-                    'killed_units': [killed_units_enemy]
-                },
-                'modify': ['answer']
-            })
-        return output
-
-    @classmethod
-    def answer_attack(cls, self_unit, enemy_unit):
-        output = {}
-        if self_unit.answer and self_unit.alive:
-            damage, killed_units = enemy_unit.take_damage(self_unit)
-            output['enemy'] = {
-                'enemy': {
-                    'damage': [damage],
-                    'killed_units': [killed_units]
-                },
-            }
-            add_or_create_list_in_dict(output, 'modify', 'answer')
+        answer_output = cls.answer_attack(enemy_unit, self_unit)
+        output.update(answer_output)
         return output
 
     @classmethod
     def double_attack(cls, self_unit, enemy_unit):
         output = cls.base_attack(self_unit, enemy_unit)
-        damage, killed_units = enemy_unit.take_damage(self_unit)
-        output['enemy']['damage'].append(damage)
-        output['enemy']['killed_units'].append(killed_units)
-        if 'modify' in output:
-            output['modify'].append('double_attack')
-        else:
-            output['modify'] = ['double_attack']
+        if self_unit.alive:
+            damage, killed_units = enemy_unit.take_damage(self_unit)
+            output['enemy']['get_damage'].append(damage)
+            output['enemy']['killed_units'].append(killed_units)
+            add_or_create_list_in_dict(output, 'modify', 'double_attack')
         return output
 
     def __str__(self):

@@ -3,6 +3,7 @@ from django.forms.models import model_to_dict
 from .models import Combat, TYPES, TYPES_COMBAT, Field
 
 from army_app.services import Army
+from hero_app.services import Heroes
 
 TYPES = [elem[0] for elem in TYPES]
 # TYPES = (
@@ -98,9 +99,13 @@ class Combats:
     @classmethod
     def load(cls, combat: Combat):
         instance = cls.__new__(cls)
-        for attr, value in combat.__dict__:
-            if attr != '_state':
+        for attr, value in model_to_dict(combat).items():
+            if attr not in ['_state', 'left_team', 'right_team', 'mg_team']:
                 setattr(instance, attr, value)
+        setattr(instance, 'left_team', combat.left_team)
+        setattr(instance, 'right_team', combat.right_team)
+        setattr(instance, 'mg_team', combat.mg_team)
+        setattr(instance, 'combat', combat)
         return instance
 
     @classmethod
@@ -114,7 +119,6 @@ class Combats:
                                        team_size=team_size,
                                        started=started,
                                        field=field.get_instance())
-        combat = Combat.objects.get(id=combat.id)
         for attr, value in model_to_dict(combat).items():
             if attr not in ['_state', 'left_team', 'right_team', 'mg_team']:
                 setattr(instance, attr, value)
@@ -163,40 +167,39 @@ class Combats:
         hero.in_battle = True
         hero.save(update_fields=['in_battle'])
         return self
-##############Change hero model to hero HEROES instance##############
+
     def start(self):
         assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.start == False, 'Combat already started'
+        assert self.started == False, 'Combat already started'
         # Initiate starting options
         self.gather_heroes()
         self.load_heroes_armyes()
         self.combat.started = True
         self.combat.save(update_fields=['started'])
 
-    def load_heroes_armyes(self):
-        assert hasattr(self, 'heroes'), 'No heroes in combat!'
-        for id, hero in self.heroes:
-            Army.load_army(hero)
-
     def gather_heroes(self):
         self.iter_id = 0
-        for hero in self.left_team:
+        for hero in self.left_team.all():
             self.create_hero_id(hero)
-        for hero in self.right_team:
+        for hero in self.right_team.all():
             self.create_hero_id(hero)
-        for hero in self.mg_team:
+        for hero in self.mg_team.all():
             self.create_hero_id(hero)
-#################################################################
+
+    def load_heroes_armyes(self):
+        assert hasattr(self, 'heroes'), 'No heroes in combat!'
+        for id, hero in self.heroes.items():
+            Army.load_army(hero)
 
     def create_hero_id(self, hero):
         if hasattr(self, 'heroes'):
             self.iter_id += 1
             self.heroes.update({
-                self.iter_id: hero
+                self.iter_id: Heroes.objects.load_hero(hero)
             })
         else:
             self.heroes = {
-                self.iter_id: hero
+                self.iter_id: Heroes.objects.load_hero(hero)
             }
 
     def get_hero(self, id):

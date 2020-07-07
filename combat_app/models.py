@@ -18,7 +18,7 @@ class Field(models.Model):
     name = models.CharField(max_length=15)
     height = models.IntegerField(validators=[MinValueValidator(0)])
     width = models.IntegerField(validators=[MinValueValidator(0)])
-    #obstacles = JSONField()
+    obstacles = models.JSONField(blank=True, default=list)
 
 class Combat(models.Model):
     name = models.CharField(max_length=16)

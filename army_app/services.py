@@ -19,9 +19,6 @@ class Stack:
     def initiate_turn(self):
         self.answer = True
 
-    def buf_defense(self):
-        pass
-
     def add_unit(self, count):
         self.count += count
         if self.count <= 0:
@@ -37,17 +34,12 @@ class Stack:
         return self
 
     def kill(self):
+        self.last_unit_health = 0
         self.alive = False
         self.count = 0
 
     def set_last_unit_health(self, value):
         self.last_unit_health = self.unit.health if value > self.unit.health else value
-
-    def set_pos(self, x, y):
-        assert x >= 0, 'X must be more or equal 0.'
-        assert y >= 0, 'Y must be more or equal 0.'
-        self.x_pos = x
-        self.y_pos = y
 
     def defend(self):
         pass
@@ -56,12 +48,12 @@ class Stack:
         return (100-self.defense)/100
 
     def take_damage(self, stack):
-        assert isinstance(stack, Stack)
+        assert isinstance(stack, Stack), 'stack must be STACK instance.'
         damage = int(random.randrange(stack.min_attack, stack.max_attack)*stack.count*self.defense_back())
         killed_units = 0
         if damage >= self.last_unit_health + self.unit.health * (self.count - 1):
+            killed_units = self.count
             self.kill()
-            self.last_unit_health = 0
         else:
             killed_units = (damage // self.unit.health)
             remainder = (damage % self.unit.health)
@@ -73,6 +65,8 @@ class Stack:
         return self.unit.attack(self, enemy)
 
     def move(self, x, y):
+        assert x >= 0, 'X must be more or equal 0.'
+        assert y >= 0, 'Y must be more or equal 0.'
         self.x_pos, self.y_pos = self.unit.move(self, self.x_pos, self.y_pos, x, y)
 
     def __str__(self):
@@ -83,7 +77,6 @@ class Army:
         self.units = {}
         self.max_id = None
 
-
     @classmethod
     def load_army(cls, hero_instance):
         instance = cls.__new__(cls)
@@ -92,6 +85,7 @@ class Army:
         for unit, count in hero_instance.get_hero().army.items():
             assert unit in UNIT_CLASSES, f'Invalid unit class [{unit}]'
             stack = Stack(UNIT_CLASSES[unit], count)
+
             instance.add_stack(stack)
         setattr(hero_instance, 'combat_army', instance)
         return instance
@@ -128,4 +122,5 @@ class Army:
         for id, unit in self.units.items():
             output_dict.update({id:unit.__dict__})
         return output_dict
+
 
