@@ -1,10 +1,10 @@
 from django.forms.models import model_to_dict
 
-from .models import Combat, TYPES, TYPES_COMBAT
+from ..models import Combat, TYPES, TYPES_COMBAT
 
 from .army import Army
 from .field import Fields
-from hero_app.services import Heroes
+from .hero import Heroes
 
 TYPES = [elem[0] for elem in TYPES]
 # TYPES = (
@@ -40,7 +40,7 @@ class Combats:
 
     @classmethod
     def create(cls, *, name, placement_time: int=3, placement_type: str = 'EQ', battle_type: str = 'DF',
-               team_size: int = 1, started: bool = False, field: Fields):
+               team_size: int = 1, started: bool = False, field: str):
         instance = cls.__new__(cls)
         combat = Combat.objects.create(name=name,
                                        placement_time=placement_time,
@@ -48,7 +48,7 @@ class Combats:
                                        battle_type=battle_type,
                                        team_size=team_size,
                                        started=started,
-                                       field=field.get_instance())
+                                       field=field)
         for attr, value in model_to_dict(combat).items():
             if attr not in ['_state', 'left_team', 'right_team', 'mg_team']:
                 setattr(instance, attr, value)
@@ -56,7 +56,7 @@ class Combats:
         setattr(instance, 'right_team', combat.right_team)
         setattr(instance, 'mg_team', combat.mg_team)
         setattr(instance, 'combat', combat)
-        setattr(instance, 'field', field)
+        setattr(instance, 'field', Fields.get_field(battle_type=battle_type, team_size=team_size, name=field))
         return instance
 
     def set_name(self, name):
@@ -108,6 +108,21 @@ class Combats:
         self.combat.started = True
         self.combat.save(update_fields=['started'])
 
+    def get_all_stacks(self):
+        all_stacks = []
+        for hero in self.heroes.values():
+            all_stacks += hero.get_army().get_all_stacks()
+        return all_stacks
+
+
+    def get_hero(self, id):
+        assert hasattr(self, 'heroes'), 'No heroes in combat!'
+        return self.heroes[id]
+
+    def get_stacks(self, hero_id, stack_id):
+        assert self.started == True, 'Combat must be started.'
+        return self.get_hero(hero_id).get_army().get_stack(stack_id)
+
     def _gather_heroes(self):
         self.iter_id = 0
         for hero in self.left_team.all():
@@ -120,24 +135,16 @@ class Combats:
     def _load_heroes_armyes(self):
         assert hasattr(self, 'heroes'), 'No heroes in combat!'
         for id, hero in self.heroes.items():
-            Army.load_army(hero)
+            hero.gather_army()
 
     def _create_hero_id(self, hero):
         if hasattr(self, 'heroes'):
             self.iter_id += 1
             self.heroes.update({
-                self.iter_id: Heroes.objects.load_hero(hero)
+                self.iter_id: Heroes.load_hero(hero)
             })
         else:
             self.heroes = {
-                self.iter_id: Heroes.objects.load_hero(hero)
+                self.iter_id: Heroes.load_hero(hero)
             }
 
-    def get_hero(self, id):
-        assert hasattr(self, 'heroes'), 'No heroes in combat!'
-        return self.heroes[id]
-
-
-    def get_stack(self, hero_id, stack_id):
-        assert self.started == True, 'Combat must be started.'
-        return self.get_hero(hero_id).get_army().get_stack(stack_id)

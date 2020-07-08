@@ -1,7 +1,9 @@
-from django.db import models
+from django.db import models, Error
+
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from hero_app.models import Hero
+from .combat.field import Fields
 
 TYPES = (
         ('FR', 'Free'),
@@ -13,12 +15,6 @@ TYPES_COMBAT = (
         ('DF', 'TeamVsTeam'),
         ('MG', 'MeatGrinder')
     )
-
-class Field(models.Model):
-    name = models.CharField(max_length=15)
-    height = models.IntegerField(validators=[MinValueValidator(0)])
-    width = models.IntegerField(validators=[MinValueValidator(0)])
-    obstacles = models.JSONField(blank=True, default=list)
 
 class Combat(models.Model):
     name = models.CharField(max_length=16)
@@ -32,12 +28,15 @@ class Combat(models.Model):
     mg_team = models.ManyToManyField(Hero, blank=True, related_name='mgt')
     team_size = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)], default=1, null=True)
     started = models.BooleanField(default=False)
-    field = models.ForeignKey(Field, on_delete=models.SET_NULL, null=True)
+    field = models.CharField(max_length=30)
 
     def save(self, *args, **kwargs):
-        if self.battle_type == 'DF':
-            assert self.team_size <= 3, 'In default battle type, team size can\'t be more then 3'
-        if self.battle_type == 'MG':
-            assert self.team_size >= 3, 'In meat grinder battle type, team size can\'t be less then 3'
+        if self.battle_type == 'DF' and self.team_size > 3:
+            raise Error('In default battle type, team size can\'t be more then 3')
+        if self.battle_type == 'MG' and self.team_size < 3:
+            raise Error('In meat grinder battle type, team size can\'t be less then 3')
+        check = Fields.check_field_is_aviable(self.battle_type, self.team_size, self.field)
+        if check[0] == False:
+            raise Error(check[1])
         return super().save(*args, **kwargs)
 

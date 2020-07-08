@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -6,10 +5,8 @@ from django.contrib.auth.models import User
 
 from .serializers import HeroShortSerializer, HeroFullSerializer,\
     SpellShortSerializer, SpellFullSerializer, \
-    SpellTomeFullSerializer, SpellTomeShortSerializer, \
-    DefaultHeroFullSerializer, DefaultHeroShortSerializer
-from .models import Hero, Spell, SpellTome, DefaultHero
-from .services import Heroes
+    SpellTomeFullSerializer, SpellTomeShortSerializer
+from .models import Hero, Spell, SpellTome
 
 
 # All api views provides short and full mode, that can be set in GET params as short=true/false.
@@ -111,8 +108,3 @@ class SpelTomesApi(CustomAPIView):
     short_serializer = SpellTomeShortSerializer
     full_serializer = SpellTomeFullSerializer
     model = SpellTome
-
-class DefaultHeroApi(CustomAPIView):
-    short_serializer = DefaultHeroShortSerializer
-    full_serializer = DefaultHeroFullSerializer
-    model = DefaultHero

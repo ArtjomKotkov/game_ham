@@ -35,7 +35,7 @@ class CombatHandler:
     def units_data_get(self):
         pass
 
-    def validate_request(self, request):
+    def _validate_request(self, request):
         """
         Переписать!
         :param request:
@@ -59,6 +59,11 @@ class CombatHandler:
                     assert 'enemy_stack_id' in value, 'No enemy_stack_id in enemy_id key.'
                     assert isinstance(value['enemy_stack_id'], int), 'enemy_stack_id must be integer.'
 
+    def _movement_validator(self, x, y):
+        stacks = self.combat.get_stacks()
+        for stack in stacks:
+            unit_x, unit_y = stack.get_pos()
+            assert unit_x != x and unit_y != y, 'Tail is already taken.'
 
 # Принцип работы обработчика:
 

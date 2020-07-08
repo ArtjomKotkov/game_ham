@@ -1,8 +1,7 @@
 from django.contrib import admin
 
-from .models import Combat, Field
+from .models import Combat
 
 admin.site.register(Combat)
-admin.site.register(Field)
 
 

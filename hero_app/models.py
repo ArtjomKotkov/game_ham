@@ -2,18 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
+from combat_app.combat.hero import HEROES_CLASSES, HEROES_MODEL_CHOICES
+from combat_app.combat.units import UNIT_CLASSES
 
-class DefaultHero(models.Model):
-    name = models.CharField(max_length=24, unique=True)
-    human_name = models.CharField(max_length=36, unique=True)
-    attack = models.IntegerField(default=1)
-    defense = models.IntegerField(default=0)
-    mana = models.IntegerField(default=0)
-    spell_power = models.IntegerField(default=0)
-    initiative = models.FloatField(default=10)
-
-    def __str__(self):
-        return self.name
 
 class Hero(models.Model):
     name = models.CharField(max_length=24, default='Странник')
@@ -24,11 +15,103 @@ class Hero(models.Model):
     spell_power = models.IntegerField(default=0)
     initiative = models.FloatField(default=0)
     in_battle = models.BooleanField(default=False)
+    default = models.CharField(max_length=30, choices=HEROES_MODEL_CHOICES)
     army = models.JSONField(default=dict, blank=True)
+
     # Spells as self model, with foreignkey.
 
     def __str__(self):
         return f'{self.user.username}-{self.name}'
+
+    @classmethod
+    def _create_hero(cls, user, default_hero, hero_name, army: dict = None):
+        default = HEROES_CLASSES[default_hero]
+        if not army:
+            army = {}
+        hero = Hero.objects.create(
+            user=user,
+            name=hero_name,
+            attack=default.attack,
+            defense=default.defense,
+            mana=default.mana,
+            spell_power=default.spell_power,
+            initiative=default.initiative,
+            default=default_hero,
+            army=army
+        )
+        hero.save()
+        return hero
+
+    @classmethod
+    def create(cls, user, hero_name, hero_class, army=None):
+        assert user.heroes.count() <= 3, 'User can\'t have more then 3 heroes'
+        assert hero_class in HEROES_CLASSES, f'Invalid hero class - {hero_class}'
+        hero = cls._create_hero(user, hero_class, hero_name, army)
+        return hero
+
+    def add_attack(self, value: int):
+        self.attack += value
+        self.save(update_fields=['attack'])
+
+    def set_attack(self, value: int):
+        self.attack = value
+        self.save(update_fields=['attack'])
+
+    def add_defense(self, value: int):
+        self.defense += value
+        self.save(update_fields=['defense'])
+
+    def set_defense(self, value: int):
+        self.defense = value
+        self.save(update_fields=['defense'])
+
+    def add_mana(self, value: int):
+        self.mana += value
+        self.save(update_fields=['mana'])
+
+    def set_mana(self, value: int):
+        self.mana = value
+        self.save(update_fields=['mana'])
+
+    def add_spell_power(self, value: int):
+        self.spell_power += value
+        self.save(update_fields=['spell_power'])
+
+    def set_spell_power(self, value: int):
+        self.spell_power = value
+        self.save(update_fields=['spell_power'])
+
+    def add_initiative(self, value):
+        self.initiative += value
+        self.save(update_fields=['initiative'])
+
+    def set_initiative(self, value):
+        self.initiative = value
+        self.save(update_fields=['initiative'])
+
+    def add_spell(self, pk):
+        spell = Spell.objects.get(pk=pk)
+        self.spells.add(spell)
+        self.save(update_fields=['spells'])
+
+    def remove_spell(self, pk):
+        spell = Spell.objects.get(pk=pk)
+        self.spells.remove(spell)
+        self.save(update_fields=['spells'])
+
+    def clear_spells(self):
+        self.spells.clear()
+        self.save(update_fields=['spells'])
+
+    def set_unit_in_army(self, unit, count):
+        assert unit in UNIT_CLASSES, 'Invalid unit class! \n Aviable: \n ' + unit_classes_to_str()
+        self.army[unit] = count
+        self.save()
+
+    def del_unit_from_army(self, unit):
+        if unit in self.army:
+            del self.army[unit]
+
 
 class SpellTome(models.Model):
     name = models.CharField(max_length=30)
@@ -36,10 +119,10 @@ class SpellTome(models.Model):
     def __str__(self):
         return self.name
 
+
 class Spell(models.Model):
     tome = models.ForeignKey(SpellTome, related_name='spells', on_delete=models.SET_NULL, null=True)
     hero = models.ManyToManyField(Hero, related_name='spells', blank=True)
-    default_hero = models.ManyToManyField(DefaultHero, related_name='spells', blank=True)
     name = models.CharField(max_length=30, unique=True)
     short_name = models.CharField(max_length=16, unique=True)
     description = models.TextField()
@@ -66,4 +149,3 @@ class Spell(models.Model):
                     else:
                         self.height = self.width
         return super().save(*args, **kwargs)
-
