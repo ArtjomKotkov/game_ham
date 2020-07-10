@@ -12,6 +12,12 @@ class Obstacles:
         self.obstacles.append(tuple([arg for arg in args]))
         return self
 
+    def is_obstacle(self, x, y):
+        for obstacle in self.obstacles:
+            if (x, y) in obstacle:
+                return True
+        return False
+
     def __dict__(self):
         return self.obstacles
 
@@ -140,6 +146,10 @@ class Fields:
         if name not in cls._available_fields()[battle_type][team_size]:
             return False, 'Invalid field name.'
         return True, 'Success.'
+
+    @classmethod
+    def is_obstacle(cls, x:int, y:int):
+        return cls.obstacles.is_obstacle(x, y)
 
     class DF:
         """

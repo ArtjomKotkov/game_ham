@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import UserPage
+from .views import UserPage, UserApi
 
 urlpatterns = [
-    path('<str:username>/', UserPage.as_view(), name='user_page')
+    path('info/<str:username>/', UserPage.as_view(), name='user_page'),
+    path('', UserApi.as_view()),
+    path('<pk>/', UserApi.as_view())
 ]

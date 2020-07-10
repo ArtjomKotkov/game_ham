@@ -1,0 +1,15 @@
+.hero-box {
+	border: 1px solid gray;
+	margin: 20px;
+}
+
+.hero-box:hover {
+	border: 1px solid red;
+}
+
+.selected-hero {
+	-webkit-box-shadow: 0px 0px 48px -9px rgba(255,0,0,2);
+	-moz-box-shadow: 0px 0px 48px -9px rgba(255,0,0,2);
+	box-shadow: 0px 0px 48px -9px rgba(255,0,0,2);
+	border: 2px solid red !important;	
+}

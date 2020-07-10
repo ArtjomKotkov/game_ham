@@ -33,8 +33,11 @@ class CustomAPIView(APIView):
     short_serializer = None
     full_serializer = None
     model = None
+    available_methods = ['GET', 'POST', 'PUT', 'DELETE']
 
     def get(self, request, pk=None):
+        if 'GET' not in self.available_methods:
+            return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         data = request.GET
         mode = data.get('short', 'false')
         ids = data.get('ids', None)
@@ -60,6 +63,8 @@ class CustomAPIView(APIView):
         return Response(serializer.data, status=200)
 
     def post(self, request):
+        if 'POST' not in self.available_methods:
+            return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         data = request.GET
         mode = data.get('short', 'false')
         serializer = self.full_serializer(data=request.data)
@@ -71,6 +76,8 @@ class CustomAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
+        if 'PUT' not in self.available_methods:
+            return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         data = request.GET
         mode = data.get('short', 'false')
         try:
@@ -86,6 +93,8 @@ class CustomAPIView(APIView):
             return Response(serializer.errors)
 
     def delete(self, request, pk):
+        if 'DELETE' not in self.available_methods:
+            return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         try:
             instance = self.model.objects.get(pk=pk)
         except self.model.DoesNotExist:

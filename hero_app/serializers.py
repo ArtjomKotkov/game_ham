@@ -3,7 +3,6 @@ import re
 from rest_framework import serializers
 
 from .models import Hero, Spell, SpellTome
-from combat_app.combat.hero import Heroes
 
 # Spells serializers.
 class SpellShortSerializer(serializers.ModelSerializer):
@@ -76,7 +75,7 @@ class HeroFullSerializer(serializers.ModelSerializer):
     """
     spells = SpellShortSerializer(many=True, read_only=True)
     hero_class = CharOrIntField(write_only=True, allow_null=True, required=False)
-    spells_manager = serializers.JSONField(write_only=True)
+    spells_manager = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = Hero
@@ -84,10 +83,10 @@ class HeroFullSerializer(serializers.ModelSerializer):
                   'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager']
 
     def create(self, validated_data):
-        hero = Heroes.objects.create(user=validated_data.get('user', None),
+        hero = Hero.create(user=validated_data.get('user', None),
                                      hero_name=validated_data.get('name', None),
                                      hero_class=validated_data.get('hero_class', None))
-        return hero.get_hero()
+        return hero
 
     def update(self, instance, validated_data):
         if 'hero_class' in validated_data:

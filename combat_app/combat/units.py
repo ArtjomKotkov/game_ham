@@ -44,6 +44,7 @@ class UnitABS:
     @classmethod
     def answer_attack(cls, self_unit, enemy_unit):
         output = {}
+        print(f'{self_unit.answer=} {self_unit.alive=} {self_unit.is_near(enemy_unit)=}')
         if self_unit.answer and self_unit.alive and self_unit.is_near(enemy_unit):
             self_unit.answer = False
             damage, killed_units = enemy_unit.take_damage(self_unit)
@@ -75,9 +76,13 @@ class UnitABS:
                 'killed_units': [killed_units]
             },
         }
-        answer_output = cls.answer_attack(enemy_unit, self_unit)
+        answer_output = enemy_unit.unit.answer_attack(enemy_unit=enemy_unit, self_unit=self_unit)
         output.update(answer_output)
         return output
+
+    @classmethod
+    def move(cls, from_x, from_y, to_x, to_y):
+        return cls.base_movement(from_x, from_y, to_x, to_y)
 
     @classmethod
     def attack(cls, self_unit, enemy_unit):
@@ -86,12 +91,27 @@ class UnitABS:
     def __str__(self):
         return self.name
 
+    @classmethod
+    def serialize_short(cls):
+        return dict(
+            name=cls.name,
+            image=cls.image
+        )
+
 # Additional abstract unit classes.
 class UnitDistanse(UnitABS):
     """
     Default distance unit.
     """
     type = 'distance'
+
+    @classmethod
+    def attack(self, self_unit, enemy_unit):
+        return super().attack(self_unit, enemy_unit)
+
+    @classmethod
+    def answer_attack(cls, self_unit, enemy_unit):
+        return super().answer_attack(self_unit, enemy_unit)
 
 class UnitMelee(UnitABS):
     """
@@ -100,26 +120,31 @@ class UnitMelee(UnitABS):
     type = 'melee'
 
     @classmethod
+    def attack(self, self_unit, enemy_unit):
+        return super().attack(self_unit, enemy_unit)
+
+    @classmethod
+    def answer_attack(cls, self_unit, enemy_unit):
+        return super().answer_attack(self_unit, enemy_unit)
+
+    @classmethod
     def base_attack(cls, self_unit, enemy_unit):
         assert self_unit.is_near(enemy_unit), 'Melee unit must be near enemy.'
-        damage, killed_units = enemy_unit.take_damage(self_unit)
-        output = {
-            'enemy': {
-                'get_damage': [damage],
-                'killed_units': [killed_units]
-            },
-        }
-        answer_output = cls.answer_attack(enemy_unit, self_unit)
-        output.update(answer_output)
-        return output
+        return super().base_attack(self_unit, enemy_unit)
 
 class UnitDistanceAnswer(UnitDistanse):
     """
     Distance unit but make answer when somebody shoot or hit him.
     """
+
+    @classmethod
+    def attack(self, self_unit, enemy_unit):
+        return super().attack(self_unit, enemy_unit)
+
     @classmethod
     def answer_attack(cls, self_unit, enemy_unit):
         output = {}
+        print(f'{self_unit.answer=} {self_unit.alive=}')
         if self_unit.answer and self_unit.alive:
             self_unit.answer = False
             damage, killed_units = enemy_unit.take_damage(self_unit)
@@ -148,7 +173,7 @@ class Unit:
 
 
     class DemonArcher(UnitDistanceAnswer):
-        name = 'ELFArcher'
+        name = 'DemonArcher'
         image = None
         health = 22
         min_attack = 12
@@ -157,8 +182,8 @@ class Unit:
         initiative = 11
         speed = 3
 
-    class Civlian(UnitMelee):
-        name = 'ELFArcher'
+    class Civilian(UnitMelee):
+        name = 'Civilian'
         image = None
         health = 3
         min_attack = 2

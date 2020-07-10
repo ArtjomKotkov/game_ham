@@ -72,10 +72,11 @@ class Stack:
         """
         assert x >= 0, 'X must be more or equal 0.'
         assert y >= 0, 'Y must be more or equal 0.'
-        self.x_pos, self.y_pos = self.unit.move(self, self.x_pos, self.y_pos, x, y)
+        self.x_pos, self.y_pos = self.unit.move(self.x_pos, self.y_pos, x, y)
+        return self.x_pos, self.y_pos
 
     def is_near(self, enemy):
-        assert isinstance(enemy, Stack), 'enemy must be STACK instance.'
+        assert isinstance(enemy, Stack), 'Enemy must be STACK instance.'
         self_x, self_y = self.get_pos()
         enemy_x, enemy_y = enemy.get_pos()
         return True if ((self_x-enemy_x)**2+(self_y-enemy_y)**2)**(1/2) < 2 else False

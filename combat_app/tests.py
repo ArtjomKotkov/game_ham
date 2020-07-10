@@ -1,4 +1,4 @@
-import json
+import pprint
 
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -6,9 +6,6 @@ from django.contrib.auth.models import User
 from hero_app.models import Hero
 
 from .combat.combat import Combats
-from .combat.field import Fields
-from .combat.hero import Heroes
-from .combat.units import Archer, ElFArcher
 
 
 class TestCombat(TestCase):
@@ -16,11 +13,10 @@ class TestCombat(TestCase):
     def setUp(self) -> None:
         army1 = {
             'Archer': 12,
-            'ELFArcher': 6
         }
         army2 = {
-            'Archer': 15,
-            'ELFArcher': 9
+            'DemonArcher': 2,
+            'Civilian': 10
         }
         self.user1 = User.objects.create_user('test_user1', password='123456')
         self.user2 = User.objects.create_user('test_user2', password='123456')
@@ -34,4 +30,8 @@ class TestCombat(TestCase):
         self.combat.start()
 
     def test_one(self):
-        print(self.combat.field)
+        stack1 = self.combat.get_stack(0, 0)
+        stack2 = self.combat.get_stack(1, 1)
+        stack1.move(3, 0)
+        stack1.move(3, 0)
+        pprint.pprint(stack2.attack(stack1))

@@ -7,11 +7,9 @@ from hero_app.serializers import HeroShortSerializer, HeroFullSerializer
 
 class UserShortSerializer(serializers.ModelSerializer):
 
-    heroes = HeroShortSerializer(many=True, read_only=True)
-
     class Meta:
         model = User
-        fields = ['id', 'username', 'heroes']
+        fields = ['id', 'username', 'is_staff']
 
 class UserFullSerializer(serializers.ModelSerializer):
 

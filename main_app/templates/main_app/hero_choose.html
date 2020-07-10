@@ -1,0 +1,18 @@
+{% extends 'basic.html' %}
+
+{% load static %}
+
+{% block additional_head %}
+
+<script src="{% static 'main_app/vue_scripts/choose_hero.js' %}"></script>
+<link rel="stylesheet" href="{% static 'main_app/style.css' %}">
+
+{% endblock %}
+
+{% block content %}
+
+    <div id="app">
+    	<heroes></heroes>
+    </div>
+
+{% endblock %}

@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import check_password
 class RegisterForm(forms.ModelForm):
 
     password2 = forms.CharField(min_length=8, widget=forms.PasswordInput(attrs={'class':'form-control'}), required=True)
+    hero_name = forms.CharField(min_length=6, max_length=24, widget=forms.TextInput(attrs={'class':'form-control'}), required=True)
 
     class Meta:
         model = User

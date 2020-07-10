@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <title>{% block title %}Basic page{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    {% block additional_head %}
-    {% endblock %}
 </head>
 <body>
     <div class="container-fluid">
-        {% block content %}
-        {% endblock %}
+        <div class="row">
+            <div class="col-4 offset-4 justify-content-center">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
     </div>
 </body>
 </html>

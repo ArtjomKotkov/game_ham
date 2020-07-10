@@ -1,4 +1,4 @@
-{% extends 'basic.html' %}
+{% extends 'basic_register.html' %}
 
 {% block title %}Register page.{% endblock %}
 
@@ -21,6 +21,7 @@
             </div>
         {% endfor %}
         <input type="submit" class="btn btn-primary" value="Отправить">
+        <a href="{% url 'main_app:hero' %}" class='d-block'>Регистрация</a>
     </div>
 </form>
 

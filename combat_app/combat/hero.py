@@ -1,17 +1,12 @@
 import inspect
 
 from .army import Army
-from .units import UNIT_CLASSES
-
-
-def unit_classes_to_str():
-    str = ''
-    for key in UNIT_CLASSES.keys():
-        str += key+'\n'
-    return str
+from .units import Unit
 
 
 class HeroABS:
+    name = 'Default'
+    description = None
     attack = 0
     defense = 0
     mana = 0
@@ -29,6 +24,14 @@ class HeroABS:
         assert hasattr(self, 'hero'), 'Hero doesn\'t loaded.'
         Army.load_army(self)
 
+    @classmethod
+    def serialize(cls):
+        units = [unit.serialize_short() for unit in cls.aviable_stacks]
+        return dict(
+            name=cls.name,
+            description=cls.description,
+            units=units
+        )
 
 class Heroes:
 
@@ -40,21 +43,23 @@ class Heroes:
 
     class Knight(HeroABS):
         name = 'Рыцарь'
+        description = 'Типичный рыцарь'
         attack = 1
         defense = 3
         mana = 1
         spell_power = 0
         initiative = 12
-        aviable_stacks = []
+        aviable_stacks = [Unit.Archer]
 
     class Demon(HeroABS):
         name = 'Демон'
+        description = 'Типичный демон'
         attack = 4
         defense = -1
         mana = 0
         spell_power = 0
         initiative = 13
-        aviable_stacks = []
+        aviable_stacks = [Unit.DemonArcher]
 
 
 HEROES_CLASSES = {key: value for key, value in Heroes.__dict__.items() if inspect.isclass(value)}

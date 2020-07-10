@@ -1,8 +1,10 @@
-{% extends 'basic.html' %}
+{% extends 'basic_register.html' %}
 
 {% block title %}Register page.{% endblock %}
 
 {% block content %}
+
+{{request.session.hero}}
 
 <form action="{% url 'main_app:register' %}" method="POST">
     {% csrf_token %}

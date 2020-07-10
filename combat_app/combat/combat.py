@@ -114,12 +114,11 @@ class Combats:
             all_stacks += hero.get_army().get_all_stacks()
         return all_stacks
 
-
     def get_hero(self, id):
         assert hasattr(self, 'heroes'), 'No heroes in combat!'
         return self.heroes[id]
 
-    def get_stacks(self, hero_id, stack_id):
+    def get_stack(self, hero_id, stack_id):
         assert self.started == True, 'Combat must be started.'
         return self.get_hero(hero_id).get_army().get_stack(stack_id)
 
