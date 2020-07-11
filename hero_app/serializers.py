@@ -3,6 +3,8 @@ import re
 from rest_framework import serializers
 
 from .models import Hero, Spell, SpellTome
+from combat_app.combat.units import UNIT_CLASSES
+
 
 # Spells serializers.
 class SpellShortSerializer(serializers.ModelSerializer):
@@ -56,6 +58,20 @@ class CharOrIntField(serializers.Field):
         return int(value) if not self.is_str else str(value)
 
 # Hero serializers.
+
+class ArmyField(serializers.Field):
+
+    def to_internal_value(self, data):
+        return data
+
+    def to_representation(self, value):
+        output = []
+        for key, count in value.items():
+            output.append(UNIT_CLASSES[key].serialize_short(count=count))
+        print(output)
+        return output
+
+
 class HeroShortSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -76,11 +92,12 @@ class HeroFullSerializer(serializers.ModelSerializer):
     spells = SpellShortSerializer(many=True, read_only=True)
     hero_class = CharOrIntField(write_only=True, allow_null=True, required=False)
     spells_manager = serializers.JSONField(write_only=True, required=False)
+    army = ArmyField(read_only=True)
 
     class Meta:
         model = Hero
         fields = ['id', 'user', 'name', 'attack', 'defense',
-                  'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager']
+                  'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager', 'army']
 
     def create(self, validated_data):
         hero = Hero.create(user=validated_data.get('user', None),

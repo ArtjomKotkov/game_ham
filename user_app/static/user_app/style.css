@@ -1,0 +1,30 @@
+.hero-block {
+	border: 1px solid gray;
+	min-height: 200px;
+	min-width: 150px;
+	margin: 15px;
+}
+
+.hero-block-selected {
+	border: 3px solid red;
+}
+
+.popup {
+	position: absolute;
+	width: 70%;
+	height: 70%;
+	left:15%;
+	top:15%;
+	background-color: white;
+	padding: 15px;
+	border: 1px solid rgba(0,0,0,0.2);
+	border-radius: 15px;
+}
+
+.close-button {
+	position: absolute;
+	right: 15px;
+	top: 15px;
+	display: inline-block;
+	line-height: 5px;
+}

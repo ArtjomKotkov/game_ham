@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework import permissions
 from django.contrib.auth.models import User
 
 from .serializers import HeroShortSerializer, HeroFullSerializer,\
@@ -9,7 +10,7 @@ from .serializers import HeroShortSerializer, HeroFullSerializer,\
 from .models import Hero, Spell, SpellTome
 
 
-# All api views provides short and full mode, that can be set in GET params as short=true/false.
+# All api views provides short and full mode, that can be set i n GET params as short=true/false.
 
 def query_list_to_list_of_int(string: str, delimiter: str):
     result = []
@@ -28,12 +29,24 @@ def make_serializer(mode, short_serializer, full_serializer, model, many: bool):
         serializer = short_serializer(model, many=many)
     return serializer
 
+class TestPerm(permissions.BasePermission):
+    """
+    Global permission check for blacklisted IPs.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        if user.is_staff:
+            return True
+        else:
+            return False
 
 class CustomAPIView(APIView):
     short_serializer = None
     full_serializer = None
     model = None
     available_methods = ['GET', 'POST', 'PUT', 'DELETE']
+    permission_classes = [TestPerm]
 
     def get(self, request, pk=None):
         if 'GET' not in self.available_methods:

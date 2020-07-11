@@ -20,4 +20,4 @@ class UserApi(CustomAPIView):
     short_serializer = UserShortSerializer
     full_serializer = UserFullSerializer
     model = User
-    available_methods = ['GET']
+    available_methods = ['GET', 'PUT']

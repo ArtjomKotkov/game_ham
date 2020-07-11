@@ -7,6 +7,7 @@ def add_or_create_list_in_dict(dict_: dict, key: str, value):
     else:
         dict_[key].append(value)
 
+
 class UnitABS:
     """
     Base unit class.
@@ -34,7 +35,7 @@ class UnitABS:
 
     @classmethod
     def pos_in_step_radius(cls, from_x, from_y, to_x, to_y):
-        return True if ((to_x - from_x)**2+(to_y-from_y)**2)**(1/2) <= cls.speed else False
+        return True if ((to_x - from_x) ** 2 + (to_y - from_y) ** 2) ** (1 / 2) <= cls.speed else False
 
     @classmethod
     def base_movement(cls, from_x, from_y, to_x, to_y):
@@ -92,11 +93,15 @@ class UnitABS:
         return self.name
 
     @classmethod
-    def serialize_short(cls):
-        return dict(
+    def serialize_short(cls, count=None):
+        output = dict(
             name=cls.name,
             image=cls.image
         )
+        if count:
+            output.update({'count': count})
+        return output
+
 
 # Additional abstract unit classes.
 class UnitDistanse(UnitABS):
@@ -112,6 +117,7 @@ class UnitDistanse(UnitABS):
     @classmethod
     def answer_attack(cls, self_unit, enemy_unit):
         return super().answer_attack(self_unit, enemy_unit)
+
 
 class UnitMelee(UnitABS):
     """
@@ -131,6 +137,7 @@ class UnitMelee(UnitABS):
     def base_attack(cls, self_unit, enemy_unit):
         assert self_unit.is_near(enemy_unit), 'Melee unit must be near enemy.'
         return super().base_attack(self_unit, enemy_unit)
+
 
 class UnitDistanceAnswer(UnitDistanse):
     """
@@ -160,7 +167,6 @@ class UnitDistanceAnswer(UnitDistanse):
 
 
 class Unit:
-
     class Archer(UnitDistanse):
         name = 'Archer'
         image = None
@@ -170,7 +176,6 @@ class Unit:
         defense = 2
         initiative = 11
         speed = 4
-
 
     class DemonArcher(UnitDistanceAnswer):
         name = 'DemonArcher'
