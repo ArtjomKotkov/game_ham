@@ -49,7 +49,7 @@ class Heroes:
         mana = 1
         spell_power = 0
         initiative = 12
-        aviable_stacks = [Unit.Archer]
+        aviable_stacks = [Unit.Archer, Unit.Civilian]
 
     class Demon(HeroABS):
         name = 'Демон'

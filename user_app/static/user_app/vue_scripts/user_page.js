@@ -67,6 +67,83 @@ $(document).ready(function() {
 		}
 	})
 
+	Vue.component('army_choose', {
+		props: ['hero_id', 'army', 'available'],
+		data: function () {
+		    return {
+		    	armyes: [],
+		    	changes: false
+		    }
+		},
+		template: `
+		<div class='hero-block-2'>
+			<div class='close-button' @click='$emit("close")'>X</div>
+			<div>Набор армии</div>
+			<div>
+				<div v-for='(unit, index) in armyes' class='d-flex flex-row mb-2'>
+					<div><a href="#" class='button_additional' @click.prevent='add(index, -1)'>-</a></div>
+					<div class='flex-grow-1'>
+						<div class='text-center'>{{unit.name}}</div>
+						<div class="progress">
+					    	<div class="progress-bar" role="progressbar" :style='calculate_bar(unit)' :aria-valuenow="unit.count" aria-valuemin="0" :aria-valuemax="unit.max_value">{{unit.count}}</div>
+						</div>
+					</div>
+					<div><a href="#" class='button_additional' @click.prevent='add(index, 1)'>+</a></div>
+				</div>
+				<div v-if='changes == true'>
+					<button type="button" class="btn btn-success" @click.prevent='save'>Сохранить</button>
+				</div>
+			</div>
+		</div>`,
+		mounted: function () {
+			this.calculate_army();
+		},
+		methods: {
+			calculate_army: function () {
+				var armyes = {}
+				for (let i = 0; i < this.available.length; i++) {
+					armyes[this.available[i]] = 0;
+				}
+				for (let i = 0; i < this.army.length; i++) {
+					if (this.army[i].name in armyes) {
+						armyes[this.army[i].name] = this.army[i].count;
+					}
+				}
+				for (const [key, value] of Object.entries(armyes)) {
+					this.armyes.push({
+						name:key,
+						count:value,
+						max_value:100
+					})
+				}
+			},
+			add: function(unit, value) {
+				if (this.armyes[unit].count + value <= this.armyes[unit].max_value && this.armyes[unit].count + value >= 0) {
+					this.armyes[unit].count = this.armyes[unit].count + value;
+					this.changes = true;
+				}
+			},
+			calculate_bar: function (unit) {
+				return 'width: ' +parseInt(unit.count/unit.max_value*100)+ '%'
+			},
+			save: function () {
+				var army_manager = {};
+				this.armyes.forEach(function (item, index) {
+				    army_manager[item.name] = item.count;
+				});
+				axios.put(`/api/v1/hero/${this.hero_id}`, {
+				    army_manager: army_manager
+				}).then((response) => {
+					this.$emit('update', this.hero_id, response.data.army);
+				    this.$emit('close');
+				}).catch((error) => {
+				  console.error(error.response.data);
+				}).finally(() => {
+				  // TODO
+				});
+			}
+		},
+	})
 
 	Vue.component('hero_param', {
 		props: ['text', 'instance', 'param', 'url'],
@@ -108,29 +185,50 @@ $(document).ready(function() {
 		    	heroes:null,
 		    	blank_heroes:[],
 		    	selected_hero:null,
-		    	create_hero:false
+		    	create_hero:false,
+		    	choose_army:false
 		    }
 		},
 		template: `
-		<div class='d-flex flex-row'>
-			<div v-for='(hero, index) in heroes' class='hero-block' :class='{"hero-block-selected": hero.id == selected_hero}'>
-				<div>{{hero.name}}</div>	
-				<div class='d-flex flex-column'>
-					<hero_param text='Атака' :instance='hero' param='attack' url='#'></hero_param>
-					<hero_param text='Защита' :instance='hero' param='defense' url='#'></hero_param>
-					<hero_param text='Мана' :instance='hero' param='mana' url='#'></hero_param>
-					<hero_param text='Сила магии' :instance='hero' param='spell_power' url='#'></hero_param>
-					<hero_param text='Иницатива' :instance='hero' param='initiative' url='#'></hero_param>
-				</div>
-				<div>
-					<div v-for='(unit, index) in hero.army'>
-						<span>{{unit.name}}: {{unit.count}}</span>
+		<div class='row mt-3'>
+			<div v-for='(hero, index) in heroes' class='col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12 mb-3'>
+				<div class='hero-block h-100' :class='{"hero-block-selected": hero.id == selected_hero}'>
+					<div class='hero-header p-2 d-flex flex-row justify-content-between align-items-center'>
+					<span class='pl-2'>{{hero.name}}</span>
+					<button type="button" class="btn btn-outline-light" @click.prevent='select_(hero.id)' v-if='$root.equal() == true'>Выбрать</button>
+					</div>
+					<div>	
+						<div class='d-flex flex-column w-100 p-3'>
+							<hero_param text='Атака' :instance='hero' param='attack' url='#'></hero_param>
+							<hero_param text='Защита' :instance='hero' param='defense' url='#'></hero_param>
+							<hero_param text='Мана' :instance='hero' param='mana' url='#'></hero_param>
+							<hero_param text='Сила магии' :instance='hero' param='spell_power' url='#'></hero_param>
+							<hero_param text='Иницатива' :instance='hero' param='initiative' url='#'></hero_param>
+						</div>
+						<div class='w-100 flex-grow-1 px-3 py-2 hero-army d-flex flex-column justify-content-end align-items-center'>
+							<div class='d-flex flex-row'>
+								<div v-for='(unit, index) in hero.army'>
+									<a href="#" class='unit-img-block'>
+										<img :src="unit.icon" :alt="unit.name" height='40px' width='40px' />
+										<div class='unit-count'>{{unit.count}}</div>
+									</a>
+								</div>
+							</div>
+							<button type="button" class="btn btn-outline-primary m-2" @click.prevent='choose_army = hero.id' v-if='$root.equal() == true'>Набор армии</button>
+						</div>
 					</div>
 				</div>
-				<button type="button" class="btn btn-outline-primary" @click.prevent='select_(hero.id)'>Выбрать</button>
+
+				<!-- Army select -->
+					<div v-if='choose_army == hero.id' class='popup-2'>
+						<army_choose @update='update(index, arguments)' @close='choose_army = false' :army='hero.army' :hero_id='hero.id' :available='hero.available'></army_choose>
+					</div>
+
 			</div>
-			<div v-for='(hero, index) in blank_heroes' class='hero-block'>
-			<a href="#" @click.prevent='create_hero = true'>+</a>
+			<div v-for='(hero, index) in blank_heroes' class='col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12 mb-3' v-if='$root.equal() == true'>
+				<div class='hero-block h-100'>
+					<a href="#" @click.prevent='create_hero = true' class='blank-hero'>+</a>
+				</div>
 			</div>
 			<div v-if='create_hero == true' class='popup'>
 				<create_hero @close='create_hero = false'></create_hero>
@@ -163,6 +261,9 @@ $(document).ready(function() {
 	    		}).finally(() => {
 	    		  // TODO
 	    		});
+	    	},
+	    	update: function (index, args) {
+	    		this.heroes[index].army = args[1];
 	    	}
 	    }
 	})
@@ -173,6 +274,11 @@ $(document).ready(function() {
 		data: {
 			'user': null,
 			'owner': null
+		},
+		methods: {
+			equal: function () {
+				return this.user.id == this.owner.id
+			}
 		}
 	})
 

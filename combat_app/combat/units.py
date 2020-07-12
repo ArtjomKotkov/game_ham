@@ -20,6 +20,7 @@ class UnitABS:
     defense = 0
     initiative = 0
     speed = 0
+    icon = '/static/units/blank.png'
 
     def __dict__(self):
         return dict(
@@ -96,12 +97,11 @@ class UnitABS:
     def serialize_short(cls, count=None):
         output = dict(
             name=cls.name,
-            image=cls.image
+            icon=cls.icon
         )
         if count:
             output.update({'count': count})
         return output
-
 
 # Additional abstract unit classes.
 class UnitDistanse(UnitABS):
@@ -167,18 +167,22 @@ class UnitDistanceAnswer(UnitDistanse):
 
 
 class Unit:
+
+
     class Archer(UnitDistanse):
         name = 'Archer'
-        image = None
+        human_readable = 'Лучник'
         health = 15
         min_attack = 5
         max_attack = 7
         defense = 2
         initiative = 11
         speed = 4
+        icon = '/static/units/archer.png'
 
     class DemonArcher(UnitDistanceAnswer):
         name = 'DemonArcher'
+        human_readable = 'Демон лучник'
         image = None
         health = 22
         min_attack = 12
@@ -189,6 +193,7 @@ class Unit:
 
     class Civilian(UnitMelee):
         name = 'Civilian'
+        human_readable = 'Гражданин'
         image = None
         health = 3
         min_attack = 2

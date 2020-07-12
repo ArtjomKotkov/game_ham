@@ -104,13 +104,20 @@ class Hero(models.Model):
         self.save(update_fields=['spells'])
 
     def set_unit_in_army(self, unit, count):
-        assert unit in UNIT_CLASSES, 'Invalid unit class! \n Aviable: \n ' + unit_classes_to_str()
-        self.army[unit] = count
+        assert unit in UNIT_CLASSES, 'Invalid unit class!'
+        if count == 0:
+            self._del_unit_from_army(unit)
+        else:
+            self.army[unit] = count
         self.save()
 
-    def del_unit_from_army(self, unit):
+    def _del_unit_from_army(self, unit):
         if unit in self.army:
             del self.army[unit]
+
+    @property
+    def available_stacks(self):
+        return [stack.name for stack in HEROES_CLASSES[self.default].aviable_stacks]
 
 
 class SpellTome(models.Model):
