@@ -99,7 +99,7 @@ class HeroFullSerializer(serializers.ModelSerializer):
         model = Hero
         fields = ['id', 'user', 'name', 'attack', 'defense',
                   'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager', 'army',
-                  'available', 'army_manager', 'level', 'exp', 'level_info']
+                  'available', 'army_manager', 'level', 'exp', 'level_info', 'free_point']
 
     def create(self, validated_data):
         hero = Hero.create(user=validated_data.get('user', None),

@@ -37,10 +37,14 @@ class TestPerm(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        if user.is_staff:
-            return True
-        else:
-            return False
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Return `True` if permission is granted, `False` otherwise.
+        """
+        return True if request.user == obj.user else False
+
 
 class CustomAPIView(APIView):
     short_serializer = None
@@ -93,6 +97,7 @@ class CustomAPIView(APIView):
         if 'PUT' not in self.available_methods:
             return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         data = request.GET
+        print(request.data)
         mode = data.get('short', 'false')
         try:
             instance = self.model.objects.get(pk=pk)

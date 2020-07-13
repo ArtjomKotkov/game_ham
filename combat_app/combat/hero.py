@@ -37,7 +37,8 @@ class HeroABS:
         return dict(
             name=cls.name,
             description=cls.description,
-            units=units
+            units=units,
+            class_name=cls.__name__
         )
 
 class Heroes:

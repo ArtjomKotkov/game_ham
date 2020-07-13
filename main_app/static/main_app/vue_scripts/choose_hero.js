@@ -36,6 +36,7 @@ $(document).ready(function() {
 		methods: {
 			send: function () {
 				form = new FormData()
+				form.append('hero_class', this.items[this.current_hero].class_name)
 				form.append('hero', this.items[this.current_hero].name)
 				axios.post('/auth/hero/', form)
 				.then((response) => {

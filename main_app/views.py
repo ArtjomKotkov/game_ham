@@ -27,9 +27,12 @@ class HeroChooseView(View):
 
     def post(self, request):
         hero = request.POST.get('hero', None)
-        if not hero:
+        hero_class = request.POST.get('hero_class', None)
+        if not hero or not hero_class:
             return JsonResponse(data={}, status=400)
         request.session['hero'] = hero
+        request.session['hero_class'] = hero_class
+        request.session.save()
         return JsonResponse(data={}, status=200)
 
 
@@ -47,11 +50,14 @@ class RegisterView(View):
     def post(self, request):
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(username=form.cleaned_data['username'],
+            user = User.objects. create_user(username=form.cleaned_data['username'],
                                             password=form.cleaned_data['password'],
                                             email=form.cleaned_data['email'])
-            hero = Hero.create(user=user, hero_name=form.cleaned_data['hero_name'], hero_class=request.session['hero'])
+            hero = Hero.create(user=user, hero_name=form.cleaned_data['hero_name'], hero_class=request.session['hero_class'])
             user.heroapp.selected_hero = hero
+            del request.session['hero']
+            del request.session['hero_class']
+            request.session.save()
             user.save()
             login(request, user)
             return redirect('/')

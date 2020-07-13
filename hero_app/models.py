@@ -20,6 +20,7 @@ class Hero(models.Model):
     army = models.JSONField(default=dict, blank=True)
     level = models.IntegerField(default=1)
     exp = models.IntegerField(default=0)
+    free_point = models.BooleanField(default=False)
 
     # Spells as self model, with foreignkey.
 

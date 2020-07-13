@@ -15,6 +15,39 @@
 	height: 54px;
 }
 
+.outer-bar {
+	height: 20px;
+	border: none;
+	border-radius: none;
+	background-color: #F5F5F5;
+}
+
+.inner-bar {
+	background-color: #28A745;
+}
+
+.inner-bar-full {
+	background-color: #DB0E48 !important;
+	color: white !important;
+	transition-duration: 1s;
+	cursor: pointer;
+}
+
+.inner-bar-full:hover {
+	background-color: #EEA11B !important;
+	color: white !important;
+	transition-duration: 1s;
+}
+
+.inner-text {
+	position: absolute;
+	left: calc(50% - 125px);
+	width: 250px;
+	text-align: center;
+	line-height: 20px;
+	font-size: 12px;
+}
+
 .hero-army {
 	border-top: 2px solid rgba(0,0,0,0.2);
 }
@@ -83,10 +116,12 @@
 
 .close-button {
 	position: absolute;
-	right: 15px;
-	top: 15px;
+	right: 22px;
+	top: 8px;
 	display: inline-block;
 	line-height: 5px;
+	font-size: 12px;
+	cursor: pointer;
 }
 
 .button_additional {
@@ -109,4 +144,45 @@
 	border: 2px solid #DB0E48;
 	color: #DB0E48;
 	transition-duration: 0.5s;
+}
+
+.button_additional-sm {
+	text-align: center;
+	line-height: 10px;
+	font-size: 12px;
+	font-weight: 600;
+	display: block;	
+	height: 16px;	
+	width: 16px;
+	border: 2px solid #007BFF;
+	border-radius: 5px;
+	color: #007BFF;
+	transition-duration: 0.5s;
+}
+
+.button_additional-sm:hover {
+	text-decoration: none;
+	border: 2px solid #DB0E48;
+	color: #DB0E48;
+	transition-duration: 0.5s;
+}
+
+.button_additional-sm-admin {
+	text-align: center;
+	line-height: 10px;
+	font-size: 12px;
+	font-weight: 600;
+	display: block;	
+	height: 16px;	
+	width: 16px;
+	border: 2px solid #710A2A;
+	border-radius: 5px;
+	color: #710A2A;
+	transition-duration: 0.5s;
+}
+
+.hero-param-td {
+	width: 30px;
+	align-items: center;
+	text-align: center;
 }
