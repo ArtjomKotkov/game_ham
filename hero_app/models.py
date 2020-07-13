@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
+from .levels import Levels
 from combat_app.combat.hero import HEROES_CLASSES, HEROES_MODEL_CHOICES
 from combat_app.combat.units import UNIT_CLASSES
 
@@ -17,6 +18,8 @@ class Hero(models.Model):
     in_battle = models.BooleanField(default=False)
     default = models.CharField(max_length=30, choices=HEROES_MODEL_CHOICES)
     army = models.JSONField(default=dict, blank=True)
+    level = models.IntegerField(default=1)
+    exp = models.IntegerField(default=0)
 
     # Spells as self model, with foreignkey.
 
@@ -105,11 +108,31 @@ class Hero(models.Model):
 
     def set_unit_in_army(self, unit, count):
         assert unit in UNIT_CLASSES, 'Invalid unit class!'
+        assert self._unit_can_be_added(unit, count), 'You can\'t add this count of units in army.'
         if count == 0:
             self._del_unit_from_army(unit)
         else:
             self.army[unit] = count
         self.save()
+
+    def _set_unit_in_army(self, army, unit, count):
+        assert unit in UNIT_CLASSES, 'Invalid unit class!'
+        if count == 0:
+            self._del_unit_from_army(unit)
+        else:
+            army[unit] = count
+
+    def _calculate_army_power(self, army):
+        power = 0
+        for unit, count in army.items():
+            power += UNIT_CLASSES[unit].army_cost * count
+        return power
+
+    def _unit_can_be_added(self, unit, count):
+        temp_army = self.army.copy()
+        self._set_unit_in_army(temp_army, unit, count)
+        print(Levels.data['levels'][self.level]['army_power'],  self._calculate_army_power(temp_army))
+        return True if Levels.data['levels'][self.level]['army_power'] >= self._calculate_army_power(temp_army) else False
 
     def _del_unit_from_army(self, unit):
         if unit in self.army:
@@ -117,8 +140,11 @@ class Hero(models.Model):
 
     @property
     def available_stacks(self):
-        return [stack.name for stack in HEROES_CLASSES[self.default].aviable_stacks]
+        return HEROES_CLASSES[self.default].get_available_stacks()
 
+    @property
+    def level_info(self):
+        return Levels.data['levels'][self.level]
 
 class SpellTome(models.Model):
     name = models.CharField(max_length=30)

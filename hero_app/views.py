@@ -6,9 +6,10 @@ from django.contrib.auth.models import User
 
 from .serializers import HeroShortSerializer, HeroFullSerializer,\
     SpellShortSerializer, SpellFullSerializer, \
-    SpellTomeFullSerializer, SpellTomeShortSerializer
+    SpellTomeFullSerializer, SpellTomeShortSerializer, \
+    LevelSerializer
 from .models import Hero, Spell, SpellTome
-
+from .levels import Levels
 
 # All api views provides short and full mode, that can be set i n GET params as short=true/false.
 
@@ -116,6 +117,20 @@ class CustomAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+class NoModelAPIView(APIView):
+    serializer = None
+    available_methods = ['GET', 'POST', 'PUT', 'DELETE']
+    permission_classes = [TestPerm]
+    data = None
+
+    def get(self, request):
+        if 'GET' not in self.available_methods:
+            return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        serializer = self.serializer(self.data, many=False)
+        return Response(serializer.data, status=200)
+
+
+
 class HeroApi(CustomAPIView):
     short_serializer = HeroShortSerializer
     full_serializer = HeroFullSerializer
@@ -130,3 +145,9 @@ class SpelTomesApi(CustomAPIView):
     short_serializer = SpellTomeShortSerializer
     full_serializer = SpellTomeFullSerializer
     model = SpellTome
+
+class LevelsApi(NoModelAPIView):
+    serializer = LevelSerializer
+    data = Levels.data
+    available_methods = ['GET']
+

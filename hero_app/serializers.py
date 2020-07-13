@@ -3,7 +3,6 @@ import re
 from rest_framework import serializers
 
 from .models import Hero, Spell, SpellTome
-
 from combat_app.combat.units import UNIT_CLASSES
 
 
@@ -96,12 +95,11 @@ class HeroFullSerializer(serializers.ModelSerializer):
     army_manager = serializers.JSONField(write_only=True, required=False)
     available = serializers.JSONField(source='available_stacks', required=False)
 
-
     class Meta:
         model = Hero
         fields = ['id', 'user', 'name', 'attack', 'defense',
                   'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager', 'army',
-                  'available', 'army_manager']
+                  'available', 'army_manager', 'level', 'exp', 'level_info']
 
     def create(self, validated_data):
         hero = Hero.create(user=validated_data.get('user', None),
@@ -130,3 +128,8 @@ class HeroFullSerializer(serializers.ModelSerializer):
             for key, count in army_manager.items():
                 instance.set_unit_in_army(key, count)
         return hero
+
+
+class LevelSerializer(serializers.Serializer):
+    levels = serializers.JSONField()
+

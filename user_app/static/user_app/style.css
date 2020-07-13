@@ -12,6 +12,7 @@
 	color: white;
 	text-align: center;
 	font-size: 18px;
+	height: 54px;
 }
 
 .hero-army {
@@ -100,8 +101,12 @@
 	margin: 0 10px;
 	border-radius: 5px;
 	color: #007BFF;
+	transition-duration: 0.5s;
 }
 
 .button_additional:hover {
 	text-decoration: none;
+	border: 2px solid #DB0E48;
+	color: #DB0E48;
+	transition-duration: 0.5s;
 }

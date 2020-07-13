@@ -25,6 +25,13 @@ class HeroABS:
         Army.load_army(self)
 
     @classmethod
+    def get_available_stacks(cls):
+        return [{
+            'name': unit.name,
+            'cost': unit.army_cost
+        } for unit in cls.aviable_stacks]
+
+    @classmethod
     def serialize(cls):
         units = [unit.serialize_short() for unit in cls.aviable_stacks]
         return dict(
@@ -49,7 +56,7 @@ class Heroes:
         mana = 1
         spell_power = 0
         initiative = 12
-        aviable_stacks = [Unit.Archer, Unit.Civilian]
+        aviable_stacks = [Unit.Archer, Unit.Civilian, Unit.Griffin]
 
     class Demon(HeroABS):
         name = 'Демон'

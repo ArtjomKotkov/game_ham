@@ -21,6 +21,7 @@ class UnitABS:
     initiative = 0
     speed = 0
     icon = '/static/units/blank.png'
+    army_cost = 0
 
     def __dict__(self):
         return dict(
@@ -32,6 +33,7 @@ class UnitABS:
             defense=self.defense,
             initiative=self.initiative,
             speed=self.speed,
+            cost=self.army_cost
         )
 
     @classmethod
@@ -97,7 +99,8 @@ class UnitABS:
     def serialize_short(cls, count=None):
         output = dict(
             name=cls.name,
-            icon=cls.icon
+            icon=cls.icon,
+            cost=cls.army_cost
         )
         if count:
             output.update({'count': count})
@@ -168,7 +171,6 @@ class UnitDistanceAnswer(UnitDistanse):
 
 class Unit:
 
-
     class Archer(UnitDistanse):
         name = 'Archer'
         human_readable = 'Лучник'
@@ -179,6 +181,7 @@ class Unit:
         initiative = 11
         speed = 4
         icon = '/static/units/archer.png'
+        army_cost = 250
 
     class DemonArcher(UnitDistanceAnswer):
         name = 'DemonArcher'
@@ -190,6 +193,7 @@ class Unit:
         defense = 2
         initiative = 11
         speed = 3
+        army_cost = 700
 
     class Civilian(UnitMelee):
         name = 'Civilian'
@@ -201,6 +205,19 @@ class Unit:
         defense = 0
         initiative = 10
         speed = 8
+        army_cost = 100
+
+    class Griffin(UnitMelee):
+        name = 'Griffin'
+        human_readable = 'Грифон'
+        image = None
+        health = 3
+        min_attack = 2
+        max_attack = 3
+        defense = 0
+        initiative = 10
+        speed = 8
+        army_cost = 500
 
 
 UNIT_CLASSES = {key: value for key, value in Unit.__dict__.items() if inspect.isclass(value)}

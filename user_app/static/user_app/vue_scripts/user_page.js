@@ -68,7 +68,7 @@ $(document).ready(function() {
 	})
 
 	Vue.component('army_choose', {
-		props: ['hero_id', 'army', 'available'],
+		props: ['hero'],
 		data: function () {
 		    return {
 		    	armyes: [],
@@ -78,15 +78,15 @@ $(document).ready(function() {
 		template: `
 		<div class='hero-block-2'>
 			<div class='close-button' @click='$emit("close")'>X</div>
-			<div>Набор армии</div>
 			<div>
 				<div v-for='(unit, index) in armyes' class='d-flex flex-row mb-2'>
 					<div><a href="#" class='button_additional' @click.prevent='add(index, -1)'>-</a></div>
 					<div class='flex-grow-1'>
 						<div class='text-center'>{{unit.name}}</div>
 						<div class="progress">
-					    	<div class="progress-bar" role="progressbar" :style='calculate_bar(unit)' :aria-valuenow="unit.count" aria-valuemin="0" :aria-valuemax="unit.max_value">{{unit.count}}</div>
+					    	<div class="progress-bar" :class='{"bg-danger": unit.count == 0, "bg-success": unit.count == unit.count+unit_aviable(unit)}' role="progressbar" :style='calculate_bar(unit)' :aria-valuenow="unit.count" aria-valuemin="0" :aria-valuemax="unit_aviable(unit)">{{unit.count}}</div>
 						</div>
+						{{unit_aviable(unit)}}
 					</div>
 					<div><a href="#" class='button_additional' @click.prevent='add(index, 1)'>+</a></div>
 				</div>
@@ -101,48 +101,70 @@ $(document).ready(function() {
 		methods: {
 			calculate_army: function () {
 				var armyes = {}
-				for (let i = 0; i < this.available.length; i++) {
-					armyes[this.available[i]] = 0;
+				console.log(this.hero.available)
+				for (let i = 0; i < this.hero.available.length; i++) {
+					armyes[this.hero.available[i].name] = {
+						'count': 0,
+						'cost': this.hero.available[i].cost
+					};
 				}
-				for (let i = 0; i < this.army.length; i++) {
-					if (this.army[i].name in armyes) {
-						armyes[this.army[i].name] = this.army[i].count;
+				for (let i = 0; i < this.hero.army.length; i++) {
+					if (this.hero.army[i].name in armyes) {
+						armyes[this.hero.army[i].name]['count'] = this.hero.army[i].count;
 					}
 				}
 				for (const [key, value] of Object.entries(armyes)) {
-					this.armyes.push({
+					this.armyes.push({ 
 						name:key,
-						count:value,
-						max_value:100
+						count:value.count,
+						cost:value.cost,
+						max_value:10000,
 					})
 				}
 			},
 			add: function(unit, value) {
-				if (this.armyes[unit].count + value <= this.armyes[unit].max_value && this.armyes[unit].count + value >= 0) {
+				if (this.armyes[unit].count + value <= this.unit_aviable(this.armyes[unit])+this.armyes[unit].count && this.armyes[unit].count + value >= 0) {
 					this.armyes[unit].count = this.armyes[unit].count + value;
 					this.changes = true;
 				}
 			},
 			calculate_bar: function (unit) {
-				return 'width: ' +parseInt(unit.count/unit.max_value*100)+ '%'
+				let width = parseInt(unit.count/(this.unit_aviable(unit)+unit.count)*100);
+				if (width == 0){
+					width = 100;
+				}
+				return 'width: ' + width + '%'
 			},
 			save: function () {
 				var army_manager = {};
 				this.armyes.forEach(function (item, index) {
 				    army_manager[item.name] = item.count;
 				});
-				axios.put(`/api/v1/hero/${this.hero_id}`, {
+				axios.put(`/api/v1/hero/${this.hero.id}`, {
 				    army_manager: army_manager
 				}).then((response) => {
-					this.$emit('update', this.hero_id, response.data.army);
+					this.$emit('update', this.hero.id, response.data.army);
 				    this.$emit('close');
 				}).catch((error) => {
 				  console.error(error.response.data);
 				}).finally(() => {
 				  // TODO
 				});
+			},
+			unit_aviable: function (unit) {
+				var count = parseInt((this.hero.level_info.army_power - this.army_cost)/ unit.cost)
+				return count > unit.unit_aviable ? unit.unit_aviable : count
 			}
-		},
+ 		},
+ 		computed: {
+ 			army_cost: function() {
+ 				var cost = 0
+				this.armyes.forEach(function (item, index) {	
+				    cost = cost + item.count*item.cost;
+				});
+				return cost;
+ 			}
+ 		}
 	})
 
 	Vue.component('hero_param', {
@@ -195,7 +217,7 @@ $(document).ready(function() {
 				<div class='hero-block h-100' :class='{"hero-block-selected": hero.id == selected_hero}'>
 					<div class='hero-header p-2 d-flex flex-row justify-content-between align-items-center'>
 					<span class='pl-2'>{{hero.name}}</span>
-					<button type="button" class="btn btn-outline-light" @click.prevent='select_(hero.id)' v-if='$root.equal() == true'>Выбрать</button>
+					<button type="button" class="btn btn-outline-light" @click.prevent='select_(hero.id)' v-if='$root.equal() == true && hero.id != selected_hero'>Выбрать</button>
 					</div>
 					<div>	
 						<div class='d-flex flex-column w-100 p-3'>
@@ -221,7 +243,7 @@ $(document).ready(function() {
 
 				<!-- Army select -->
 					<div v-if='choose_army == hero.id' class='popup-2'>
-						<army_choose @update='update(index, arguments)' @close='choose_army = false' :army='hero.army' :hero_id='hero.id' :available='hero.available'></army_choose>
+						<army_choose @update='update(index, arguments)' @close='choose_army = false' :hero='hero'></army_choose>
 					</div>
 
 			</div>

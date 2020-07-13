@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import HeroApi, SpellsApi, SpelTomesApi
+from .views import HeroApi, SpellsApi, SpelTomesApi, LevelsApi
 
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
    path('spell/<pk>', SpellsApi.as_view()),
    path('spell_tome/', SpelTomesApi.as_view()),
    path('spell_tome/<pk>', SpelTomesApi.as_view()),
+   path('levels/', LevelsApi.as_view()),
 ]
