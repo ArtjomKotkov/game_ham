@@ -172,8 +172,8 @@ class UnitDistanceAnswer(UnitDistanse):
 class Unit:
 
     class Archer(UnitDistanse):
-        name = 'Archer'
         human_readable = 'Лучник'
+        name = 'Archer'
         health = 15
         min_attack = 5
         max_attack = 7
@@ -184,8 +184,8 @@ class Unit:
         army_cost = 250
 
     class DemonArcher(UnitDistanceAnswer):
-        name = 'DemonArcher'
         human_readable = 'Демон лучник'
+        name = 'DemonArcher'
         image = None
         health = 22
         min_attack = 12
@@ -194,6 +194,18 @@ class Unit:
         initiative = 11
         speed = 3
         army_cost = 700
+
+    class Devil(UnitDistanceAnswer):
+        human_readable = 'Черт'
+        name = 'Devil'
+        image = None
+        health = 7
+        min_attack = 1
+        max_attack = 2
+        defense = 1
+        initiative = 12
+        speed = 3
+        army_cost = 60
 
     class Civilian(UnitMelee):
         name = 'Civilian'

@@ -5,6 +5,8 @@
 
 {% block additional_head %}
 
+<script src="{% static 'combat_app/combats_ws.js' %}"></script>
+
 {% endblock %}
 
 {% block header %}
@@ -26,66 +28,13 @@
 {% endblock %}
 
 {% block content %}
+    
+    <div id="app">
+        
+        <combats ref='combats'></combats>
 
-    <div class="row">
-            <div class="col-12 justify-content-center">
-                {% for combat in combats %}
-                    <div class="d-flex flex-row justify-content-around">
-                        <div>{{combat.id}}</div>
-                        <div>{{combat.name}}</div>
-                        <div>{{combat.battle_type}}</div>
-                        <div class="d-flex flex-row">
-                            <!--Combat heroes-->
-                            {% if combat.placement_type == 'FR' %}
-                                <div class="d-flex flex-row justify-content-around">
-                                    {% for hero in combat.left_team.all %}
-                                        <div>{{hero.name}}</div>
-                                    {% endfor %}
-                                    {% if combat.left_team.all.count < combat.team_size and not user.heroapp.selected_hero.in_battle %}
-                                        <div><a href="{% url 'combat:add' combat.id %}?team=left">Вступить</a></div>
-                                    {% endif %}
-                                </div>
-                                <div> | </div>
-                                <div class="d-flex flex-row justify-content-around">
-                                    {% for hero in combat.right_team.all %}
-                                        <div>{{hero.name}}</div>
-                                    {% endfor %}
-                                    {% if combat.right_team.all.count < combat.team_size and not user.heroapp.selected_hero.in_battle %}
-                                        <div><a href="{% url 'combat:add' combat.id %}?team=right">Вступить</a></div>
-                                    {% endif %}
-                                </div>
-                            {% elif combat.placement_type == 'EQ' %}
-                                <div class="d-flex flex-row">
-                                    {% for hero in combat.left_team.all %}
-                                        <div>{{hero.name}}</div>
-                                    {% endfor %}
-                                    {% if combat.left_team.all.count <= combat.right_team.all.count and not user.heroapp.selected_hero.in_battle %}
-                                        <div><a href="{% url 'combat:add' combat.id %}?team=left">Вступить</a></div>
-                                    {% endif %}
-                                </div>
-                                <div> | </div>
-                                <div class="d-flex flex-row">
-                                    {% for hero in combat.right_team.all %}
-                                        <div>{{hero.name}}</div>
-                                    {% endfor %}
-                                    {% if combat.right_team.all.count <= combat.left_team.all.count and not user.heroapp.selected_hero.in_battle %}
-                                        <div><a href="{% url 'combat:add' combat.id %}?team=right">Вступить</a></div>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <div class="d-flex flex-row">
-                                    {% for hero in combat.mg_team.all %}
-                                        <div>{{hero.name}}</div>
-                                    {% endfor %}
-                                    {% if combat.left_team.all.count <= combat.right_team.all.count and not user.heroapp.selected_hero.in_battle %}
-                                        <div><a href="{% url 'combat:add' combat.id %}">Вступить</a></div>
-                                    {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
+    </div>
+ 
 
 {% endblock %}
     

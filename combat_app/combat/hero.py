@@ -25,11 +25,17 @@ class HeroABS:
         Army.load_army(self)
 
     @classmethod
-    def get_available_stacks(cls):
-        return [{
-            'name': unit.name,
-            'cost': unit.army_cost
-        } for unit in cls.aviable_stacks]
+    def get_available_stacks(cls, level):
+        if level not in cls.aviable_stacks:
+            return [{
+                'name': unit.name,
+                'cost': unit.army_cost
+            } for unit in cls.aviable_stacks_all]
+        else:
+            return [{
+                'name': unit.name,
+                'cost': unit.army_cost
+            } for unit in cls.aviable_stacks[level]]
 
     @classmethod
     def serialize(cls):
@@ -57,7 +63,12 @@ class Heroes:
         mana = 1
         spell_power = 0
         initiative = 12
-        aviable_stacks = [Unit.Archer, Unit.Civilian, Unit.Griffin]
+
+        aviable_stacks = {
+            1: [Unit.Archer, Unit.Civilian],
+            2: [Unit.Archer, Unit.Civilian, Unit.Griffin]
+        }
+        aviable_stacks_all = [Unit.Archer, Unit.Civilian, Unit.Griffin]
 
     class Demon(HeroABS):
         name = 'Демон'
@@ -67,7 +78,11 @@ class Heroes:
         mana = 0
         spell_power = 0
         initiative = 13
-        aviable_stacks = [Unit.DemonArcher]
+        aviable_stacks = {
+            1: [Unit.Devil],
+            2: [Unit.Devil, Unit.DemonArcher]
+        }
+        aviable_stacks_all = [Unit.Devil, Unit.DemonArcher]
 
 
 HEROES_CLASSES = {key: value for key, value in Heroes.__dict__.items() if inspect.isclass(value)}

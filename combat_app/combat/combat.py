@@ -57,7 +57,7 @@ class Combats:
         setattr(instance, 'mg_team', combat.mg_team)
         setattr(instance, 'combat', combat)
         setattr(instance, 'field', Fields.get_field(battle_type=battle_type, team_size=team_size, name=field))
-        return instance
+        return combat
 
     def set_name(self, name):
         assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'

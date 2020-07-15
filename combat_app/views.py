@@ -4,7 +4,8 @@ from django.shortcuts import get_object_or_404, redirect, reverse
 
 from .combat.combat import Combats
 from .models import Combat
-
+from hero_app.views import CustomAPIView
+from .serializers import CombatFullSerializer, CombatShortSerializer
 
 class CombatListView(ListView):
     model = Combat
@@ -24,3 +25,7 @@ class Income(View):
             combat.add_hero_to_combat(request.user.heroapp.selected_hero)
         return redirect(reverse('combat:combat_list'))
 
+class CombatApi(CustomAPIView):
+    short_serializer = CombatShortSerializer
+    full_serializer = CombatFullSerializer
+    model = Combat

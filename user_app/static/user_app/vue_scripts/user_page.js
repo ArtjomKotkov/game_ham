@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	
+	var a = 2;
 	axios.defaults.xsrfCookieName = 'csrftoken'
 	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
 
@@ -93,7 +93,6 @@ $(document).ready(function() {
 						<div class="progress">
 					    	<div class="progress-bar" :class='{"bg-danger": unit.count == 0, "bg-success": unit.count == unit.count+unit_aviable(unit)}' role="progressbar" :style='calculate_bar(unit)' :aria-valuenow="unit.count" aria-valuemin="0" :aria-valuemax="unit_aviable(unit)">{{unit.count}}</div>
 						</div>
-						{{unit_aviable(unit)}}
 					</div>
 					<div><a href="#" class='button_additional' @click.prevent='add(index, 1)'>+</a></div>
 				</div>

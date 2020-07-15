@@ -141,7 +141,7 @@ class Hero(models.Model):
 
     @property
     def available_stacks(self):
-        return HEROES_CLASSES[self.default].get_available_stacks()
+        return HEROES_CLASSES[self.default].get_available_stacks(self.level)
 
     @property
     def level_info(self):

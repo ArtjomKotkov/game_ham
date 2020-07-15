@@ -166,7 +166,7 @@ class Fields:
                 name = 'Simple'
 
             class Hard(DefaultFieldDFSize1):
-                name = 'Simple'
+                name = 'Hard'
 
         class Duo:
             """
