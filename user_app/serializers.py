@@ -6,21 +6,31 @@ from hero_app.serializers import HeroShortSerializer, HeroFullSerializer
 from .models import HeroApp
 
 
-class HeroAppSerilizer(serializers.ModelSerializer):
+class HeroAppShortSerilizer(serializers.ModelSerializer):
+    class Meta:
+        model = HeroApp
+        fields = ['selected_hero']
+
+class HeroAppFullSerilizer(serializers.ModelSerializer):
+
+    selected_hero = HeroFullSerializer()
+
     class Meta:
         model = HeroApp
         fields = ['selected_hero']
 
 class UserShortSerializer(serializers.ModelSerializer):
 
+    heroapp = HeroAppFullSerilizer(many=False, required=False)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'is_staff']
+        fields = ['id', 'username', 'is_staff', 'heroapp']
 
 class UserFullSerializer(serializers.ModelSerializer):
 
     heroes = HeroFullSerializer(many=True, read_only=True)
-    heroapp = HeroAppSerilizer(many=False, required=False)
+    heroapp = HeroAppShortSerilizer(many=False, required=False)
 
     class Meta:
         model = User

@@ -71,7 +71,7 @@ class Combats:
         assert self.battle_type == 'DF', 'Only default battle type provides left and right teams.'
         assert self.left_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
         self.left_team.add(hero)
-        hero.in_battle = True
+        hero.in_battle = self.combat.id
         hero.save(update_fields=['in_battle'])
         return self
 
@@ -80,7 +80,7 @@ class Combats:
         assert self.battle_type == 'DF', 'Only default combat type provides left and right teams.'
         assert self.right_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
         self.combat.right_team.add(hero)
-        hero.in_battle = True
+        hero.in_battle = self.combat.id
         hero.save(update_fields=['in_battle'])
         return self
 
@@ -94,7 +94,7 @@ class Combats:
         assert self.battle_type == 'MG', 'Only MeatGrinder combat type provides this method.'
         assert self.mg_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
         self.mg_team.add(hero)
-        hero.in_battle = True
+        hero.in_battle = self.combat.id
         hero.save(update_fields=['in_battle'])
         return self
 

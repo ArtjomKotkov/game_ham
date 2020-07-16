@@ -72,9 +72,12 @@ class ArmyField(serializers.Field):
 
 
 class HeroShortSerializer(serializers.ModelSerializer):
+
+    hero_url = serializers.CharField(source='url')
+
     class Meta:
         model = Hero
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'hero_url']
 
 
 class HeroFullSerializer(serializers.ModelSerializer):
@@ -94,12 +97,13 @@ class HeroFullSerializer(serializers.ModelSerializer):
     army = ArmyField(read_only=True)
     army_manager = serializers.JSONField(write_only=True, required=False)
     available = serializers.JSONField(source='available_stacks', required=False)
+    hero_url = serializers.CharField(source='url')
 
     class Meta:
         model = Hero
         fields = ['id', 'user', 'name', 'attack', 'defense',
                   'mana', 'spell_power', 'initiative', 'spells', 'hero_class', 'spells_manager', 'army',
-                  'available', 'army_manager', 'level', 'exp', 'level_info', 'free_point']
+                  'available', 'army_manager', 'level', 'exp', 'level_info', 'free_point', 'in_battle', 'hero_url']
 
     def create(self, validated_data):
         hero = Hero.create(user=validated_data.get('user', None),

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+from django.urls import reverse
 
 from .levels import Levels
 from combat_app.combat.hero import HEROES_CLASSES, HEROES_MODEL_CHOICES
@@ -15,7 +16,7 @@ class Hero(models.Model):
     mana = models.IntegerField(default=0)
     spell_power = models.IntegerField(default=0)
     initiative = models.FloatField(default=0)
-    in_battle = models.BooleanField(default=False)
+    in_battle = models.IntegerField(null=True, default=-1)
     default = models.CharField(max_length=30, choices=HEROES_MODEL_CHOICES)
     army = models.JSONField(default=dict, blank=True)
     level = models.IntegerField(default=1)
@@ -146,6 +147,10 @@ class Hero(models.Model):
     @property
     def level_info(self):
         return Levels.data['levels'][self.level]
+
+    @property
+    def url(self):
+        return reverse('user:user_page', args=[self.user.username])
 
 class SpellTome(models.Model):
     name = models.CharField(max_length=30)

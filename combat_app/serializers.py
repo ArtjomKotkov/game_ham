@@ -9,7 +9,7 @@ class CombatShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Combat
         fields = (
-            'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
+            'id', 'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
             'team_size', 'started', 'field')
 
 class CombatFullSerializer(serializers.ModelSerializer):
@@ -21,5 +21,5 @@ class CombatFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Combat
         fields = (
-            'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
+            'id', 'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
             'team_size', 'started', 'field')

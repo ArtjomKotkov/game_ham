@@ -80,7 +80,7 @@ class AuthView(View):
         form = AuthForm(request.POST)
         if form.is_valid():
             login(request, form.user)
-            return redirect(reverse('user_app:user_page', args=[form.user.name]))
+            return redirect(reverse('user:user_page', args=[form.user.username]))
         else:
             context = {
                 'form': form

@@ -40,3 +40,45 @@ class Combat(models.Model):
             raise Error(check[1])
         return super().save(*args, **kwargs)
 
+    def delete_hero_from_combat(self, hero):
+        team = ''
+        if hero in self.left_team.all():
+            self.left_team.remove(hero)
+            team = 'left'
+        if hero in self.right_team.all():
+            self.right_team.remove(hero)
+            team = 'right'
+        if hero in self.mg_team.all():
+            self.mg_team.remove(hero)
+            team = 'mg'
+        print(team)
+        hero.in_battle = -1
+        hero.save(update_fields=['in_battle'])
+        return team
+
+    def add_hero_to_left_team(self, hero):
+        assert self.battle_type == 'DF', 'Only default battle type provides left and right teams.'
+        assert self.left_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
+        self.left_team.add(hero)
+        hero.in_battle = self.id
+        hero.save(update_fields=['in_battle'])
+
+    def add_hero_to_right_team(self, hero):
+        assert self.battle_type == 'DF', 'Only default combat type provides left and right teams.'
+        assert self.right_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
+        self.right_team.add(hero)
+        hero.in_battle = self.id
+        hero.save(update_fields=['in_battle'])
+
+    def add_hero_to_mg_team(self, hero):
+        """
+        Add user on MeatGrinder combat.
+        :param user:
+        :return:
+        """
+        assert self.battle_type == 'MG', 'Only MeatGrinder combat type provides this method.'
+        assert self.mg_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
+        self.mg_team.add(hero)
+        hero.in_battle = self.id
+        hero.save(update_fields=['in_battle'])
+
