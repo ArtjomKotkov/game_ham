@@ -22,6 +22,7 @@ class UnitABS:
     speed = 0
     icon = '/static/units/blank.png'
     army_cost = 0
+    step_additionals = []
 
     def __dict__(self):
         return dict(
@@ -105,6 +106,79 @@ class UnitABS:
         if count:
             output.update({'count': count})
         return output
+
+    def base_defend(self):
+        self.add_temp_defense(3, 1)
+
+    def base_wait(self):
+        self.add_temp_initiative(3, 1)
+
+    def add_attack(self, value):
+        self.attack += value
+
+    def add_defense(self, value):
+        self.defense += value
+
+    def add_mana(self, value):
+        self.mana += value
+
+    def add_spell_power(self, value):
+        self.spell_power += value
+
+    def add_initiative(self, value):
+        self.initiative += value
+
+    def add_temp_attack(self, value, steps):
+        self.add_attack(value)
+        self.step_additionals.append({
+            'method': self.add_attack,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_defense(self, value, steps):
+        self.add_defense(value)
+        self.step_additionals.append({
+            'method': self.add_defense,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_mana(self, value, steps):
+        self.add_mana(value)
+        self.step_additionals.append({
+            'method': self.add_mana,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_spell_power(self, value, steps):
+        self.add_spell_power(value)
+        self.step_additionals.append({
+            'method': self.add_spell_power,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_initiative(self, value, steps):
+        self.add_initiative(value)
+        self.step_additionals.append({
+            'method': self.add_initiative,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def handle_turn(self):
+        """
+        Handle every turn of hero, delete temp parameters from hero.
+        :return:
+        """
+        for additional in self.step_additionals:
+            if additional['steps'] > 0:
+                additional['steps'] -= 1
+            else:
+                additional['method'](*additional['attrs'])
+                self.step_additionals.remove(additional)
 
 # Additional abstract unit classes.
 class UnitDistanse(UnitABS):

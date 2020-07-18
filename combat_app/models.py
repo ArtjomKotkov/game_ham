@@ -1,9 +1,11 @@
-from django.db import models, Error
+import random
 
+from django.db import models, Error
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from hero_app.models import Hero
 from .combat.field import Fields
+
 
 TYPES = (
         ('FR', 'Free'),
@@ -17,7 +19,7 @@ TYPES_COMBAT = (
     )
 
 class Combat(models.Model):
-    name = models.CharField(max_length=16)
+    name = models.CharField(max_length=80)
     datetime = models.DateTimeField(auto_now_add=True)
     duration = models.DurationField(null=True)
     placement_time = models.IntegerField(validators=[MinValueValidator(3)]) # Minutes for connect players.
@@ -81,4 +83,13 @@ class Combat(models.Model):
         self.mg_team.add(hero)
         hero.in_battle = self.id
         hero.save(update_fields=['in_battle'])
+
+    def add_to_random_team(self, hero):
+        if self.battle_type == 'MG':
+            self.add_hero_to_mg_team(hero)
+        else:
+            if random.randrange(0, 1) == 0:
+                self.add_hero_to_left_team(hero)
+            else:
+                self.add_hero_to_right_team(hero)
 

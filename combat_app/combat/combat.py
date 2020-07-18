@@ -6,21 +6,6 @@ from .army import Army
 from .field import Fields
 from .hero import Heroes
 
-TYPES = [elem[0] for elem in TYPES]
-# TYPES = (
-#         ('free', 'Free'),
-#         ('equal', 'Equal'),
-#     )
-DEFAULT_TYPE = 'free'
-TYPES_COMBAT = [elem[0] for elem in TYPES_COMBAT]
-# TYPES_COMBAT = (
-#         ('1', '1vs1'),
-#         ('2', '2vs2'),
-#         ('3', '3vs3'),
-#         ('MG', 'MeatGrinder'),
-#     )
-DEFAULT_TYPE_COMBAT = '1vs1'
-
 class Combats:
 
     def __init__(self, name=None):

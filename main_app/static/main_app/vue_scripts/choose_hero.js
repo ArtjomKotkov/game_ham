@@ -7,24 +7,30 @@ $(document).ready(function() {
 		data: function () {
 		    return {
 		    	items:null,
-		    	current_hero:null,
+		    	current_hero:0,
 		    }
 		},
 		template: `
-		<div>
-			<div>Heroes</div>
-			<div class='d-flex flex-row'>
-				<div v-for='(item, index) in items' @click='current_hero = index' class='hero-box' :class='{"selected-hero": current_hero==index}'>
-					<div>
-						<span>{{item.name}}</span>
-					</div>
-					<div>
-						<span>{{item.description}}</span>
+		<div style='height: 100vh;'>
+			<div class='info-box d-flex flex-row' style='height: 70vh;'>
+				<div class='w-25 h-100 d-inline-block'>
+					<div v-for='(value, key) in items[current_hero].stats'>
+						{{key}}: {{value}}
 					</div>
 				</div>
+				<div class='w-75 h-100 d-inline-block'>
+
+				</div>
 			</div>
-			<div>
-				<input type="submit" value='Далее' @click='send' v-if='current_hero != null'/>
+			<div class='unit-box' style='height: 10vh;'>
+			</div>
+			<div class='heroes-box d-flex flex-column justify-content-around align-items-center' style='height: 20vh;'>
+				<div class='d-flex flex-row justify-content-center align-items-center'>
+					<div v-for='(item, index) in items' @click='current_hero = index''>
+						<img :src="item.image" :alt="item.name" class='hero-box' width='120px' height='120px' :class='{"selected-hero": current_hero==index}'/>
+					</div>
+				</div>
+				<button @click='send' type="button" class="btn btn-danger">Далее</button>
 			</div>
 		</div>`,
 		mounted: function() {

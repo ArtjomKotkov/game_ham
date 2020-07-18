@@ -98,9 +98,25 @@ class Fields:
 
     @classmethod
     def _available_fields(cls):
-        return {key: {value.team_size: {key: value for key, value in value.__dict__.items() if inspect.isclass(value)}
-                      for key, value in value.__dict__.items() if inspect.isclass(value)}
-                for key, value in cls.__dict__.items() if inspect.isclass(value)}
+        return {
+            key: {
+                value.team_size: {
+                    key: value for key, value in value.__dict__.items() if inspect.isclass(value)
+                } for key, value in value.__dict__.items() if inspect.isclass(value)
+            } for key, value in cls.__dict__.items() if inspect.isclass(value)}
+
+    @classmethod
+    def fields_serialize(cls):
+        return {'fields':{
+                key: {
+                    value.team_size: {
+                        key: {
+                            'name': value.name,
+                            'image': value.image,
+
+                        } for key, value in value.__dict__.items() if inspect.isclass(value)
+                    } for key, value in value.__dict__.items() if inspect.isclass(value)
+                } for key, value in cls.__dict__.items() if inspect.isclass(value)}}
 
     @classmethod
     def _available_battle_types(cls) -> list:
@@ -134,6 +150,7 @@ class Fields:
         assert team_size in cls._available_fields()[battle_type], \
             f'Invalid team size - {team_size} for battle type {battle_type}. Available: {", ".join(cls._available_team_size(battle_type))}.'
         return cls._available_field(battle_type, team_size)
+
 
     @classmethod
     def check_field_is_aviable(cls, battle_type: str, team_size: int, name: str):

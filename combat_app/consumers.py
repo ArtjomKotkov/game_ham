@@ -14,7 +14,7 @@ from .serializers import CombatFullSerializer
 class CombatsConsumer(JsonWebsocketConsumer):
     def connect(self):
         self.accept()
-        combats = Combat.objects.all()
+        combats = Combat.objects.all().order_by('battle_type')
         self.send_json({'basic': CombatFullSerializer(combats, many=True).data})
         async_to_sync(self.channel_layer.group_add)("combat_list", self.channel_name)
 
@@ -39,11 +39,21 @@ class CombatsConsumer(JsonWebsocketConsumer):
         output = {}
         errors_output = {}
         if 'create' in content:
+            data = content['create']
             combat = Combats.create(
-                name=f'test {random.randrange(1, 100000)}',
-                field='Simple'
+                name=data['name'],
+                placement_time=int(data['placement_time']),
+                placement_type=data['placement_type'],
+                battle_type=data['battle_type'],
+                team_size=int(data['team_size']),
+                field=data['field'],
             )
-            output.setdefault('created', []).append(CombatFullSerializer(combat).data)
+
+            combat.add_to_random_team(self.scope["user"].heroapp.selected_hero)
+            output.setdefault('created', {}).update({
+                'combat':CombatFullSerializer(combat).data,
+                'hero_id':self.scope["user"].heroapp.selected_hero.id
+            })
 
         if 'exit' in content:
             data = content['exit']

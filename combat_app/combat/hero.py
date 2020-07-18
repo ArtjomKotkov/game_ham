@@ -13,6 +13,9 @@ class HeroABS:
     spell_power = 0
     initiative = 10
     aviable_stacks = []
+    image = '/static/combat_app/units/blank.png'
+    background = ''
+    step_additionals = []
 
     def get_hero(self):
         return self.hero if hasattr(self, 'hero') else None
@@ -39,13 +42,107 @@ class HeroABS:
 
     @classmethod
     def serialize(cls):
-        units = [unit.serialize_short() for unit in cls.aviable_stacks]
+        units = [unit.serialize_short() for unit in cls.aviable_stacks_all]
         return dict(
             name=cls.name,
             description=cls.description,
             units=units,
-            class_name=cls.__name__
+            class_name=cls.__name__,
+            image=cls.image,
+            stats={
+                'Атака':cls.attack,
+                'Защита':cls.defense,
+                'Очки маны':cls.mana*10,
+                'Сила заклинаний':cls.spell_power,
+                'Инициатива':cls.initiative
+            }
         )
+
+    def base_attack(self, enemy_unit):
+        damage, killed_units = enemy_unit.take_damage_from_hero(self)
+        output = {
+            'enemy': {
+                'get_damage': [damage],
+                'killed_units': [killed_units]
+            },
+        }
+        return output
+
+    def base_defend(self):
+        self.add_temp_defense(3, 1)
+
+    def base_wait(self):
+        self.add_temp_initiative(3, 1)
+
+    def add_attack(self, value):
+        self.attack += value
+
+    def add_defense(self, value):
+        self.defense += value
+
+    def add_mana(self, value):
+        self.mana += value
+
+    def add_spell_power(self, value):
+        self.spell_power += value
+
+    def add_initiative(self, value):
+        self.initiative += value
+
+    def add_temp_attack(self, value, steps):
+        self.add_attack(value)
+        self.step_additionals.append({
+            'method': self.add_attack,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_defense(self, value, steps):
+        self.add_defense(value)
+        self.step_additionals.append({
+            'method': self.add_defense,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_mana(self, value, steps):
+        self.add_mana(value)
+        self.step_additionals.append({
+            'method': self.add_mana,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_spell_power(self, value, steps):
+        self.add_spell_power(value)
+        self.step_additionals.append({
+            'method': self.add_spell_power,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def add_temp_initiative(self, value, steps):
+        self.add_initiative(value)
+        self.step_additionals.append({
+            'method': self.add_initiative,
+            'attrs': [-value],
+            'steps': steps
+        })
+
+    def handle_turn(self):
+        """
+        Handle every turn of hero, delete temp parameters from hero.
+        :return:
+        """
+        for additional in self.step_additionals:
+            if additional['steps'] > 0:
+                additional['steps'] -= 1
+            else:
+                additional['method'](*additional['attrs'])
+                self.step_additionals.remove(additional)
+
+
+
 
 class Heroes:
 
@@ -63,7 +160,7 @@ class Heroes:
         mana = 1
         spell_power = 0
         initiative = 12
-
+        image = '/static/heroes/knight.jpg'
         aviable_stacks = {
             1: [Unit.Archer, Unit.Civilian],
             2: [Unit.Archer, Unit.Civilian, Unit.Griffin]
@@ -73,17 +170,30 @@ class Heroes:
     class Demon(HeroABS):
         name = 'Демон'
         description = 'Типичный демон'
-        attack = 4
-        defense = -1
+        attack = 5
+        defense = 0
         mana = 0
         spell_power = 0
-        initiative = 13
+        initiative = 12
+        image = '/static/heroes/demon.jpg'
         aviable_stacks = {
             1: [Unit.Devil],
             2: [Unit.Devil, Unit.DemonArcher]
         }
         aviable_stacks_all = [Unit.Devil, Unit.DemonArcher]
 
+    class Elf(HeroABS):
+        name = 'Эльф'
+        description = 'Типичный эльф'
+        attack = 2
+        defense = 0
+        mana = 0
+        spell_power = 0
+        initiative = 15
+        image = '/static/heroes/elf.jpg'
+        aviable_stacks = {
+        }
+        aviable_stacks_all = []
 
 HEROES_CLASSES = {key: value for key, value in Heroes.__dict__.items() if inspect.isclass(value)}
 HEROES_MODEL_CHOICES = tuple([(class_.__name__, class_.name) for class_ in HEROES_CLASSES.values()])

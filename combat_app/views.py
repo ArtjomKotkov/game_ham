@@ -3,9 +3,10 @@ from django.views.generic import View, ListView
 from django.shortcuts import get_object_or_404, redirect, reverse
 
 from .combat.combat import Combats
+from .combat.field import Fields
 from .models import Combat
-from hero_app.views import CustomAPIView
-from .serializers import CombatFullSerializer, CombatShortSerializer
+from hero_app.views import CustomAPIView, NoModelAPIView
+from .serializers import CombatFullSerializer, CombatShortSerializer, FieldsSerializer
 
 class CombatListView(ListView):
     model = Combat
@@ -29,3 +30,8 @@ class CombatApi(CustomAPIView):
     short_serializer = CombatShortSerializer
     full_serializer = CombatFullSerializer
     model = Combat
+
+class FieldsApi(NoModelAPIView):
+    serializer = FieldsSerializer
+    data = Fields.fields_serialize()
+    available_methods = ['GET']

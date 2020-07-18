@@ -1,6 +1,7 @@
 import random
 from .units import UNIT_CLASSES
 
+
 class Stack:
 
     def __init__(self, unit_class, count: int):
@@ -45,11 +46,33 @@ class Stack:
         pass
 
     def defense_back(self):
-        return (100-self.defense)/100
+        """
+        Defense backend.
+        :return:
+        """
+        return (100-self.defense-self.hero.defense)/100
 
     def take_damage(self, enemy):
         assert isinstance(enemy, Stack), 'enemy must be STACK instance.'
         damage = int(random.randrange(enemy.min_attack, enemy.max_attack)*enemy.count*self.defense_back())
+        killed_units = 0
+        if damage >= self.last_unit_health + self.unit.health * (self.count - 1):
+            killed_units = self.count
+            self.kill()
+        else:
+            killed_units = (damage // self.unit.health)
+            remainder = (damage % self.unit.health)
+            self.add_unit(-killed_units)
+            self.last_unit_health -= remainder
+        return damage, killed_units
+
+    def take_damage_from_hero(self, hero):
+        """
+        Damage calculate by using random, +-10% of hero damage.
+        :param hero:
+        :return:
+        """
+        damage = int((hero.attack+random.randrange(-0.1*hero.attack, 0.1*hero.attack))*self.defense_back())
         killed_units = 0
         if damage >= self.last_unit_health + self.unit.health * (self.count - 1):
             killed_units = self.count
@@ -100,6 +123,7 @@ class Army:
         for unit, count in hero_instance.get_hero().army.items():
             assert unit in UNIT_CLASSES, f'Invalid unit class [{unit}]'
             stack = Stack(UNIT_CLASSES[unit], count)
+            setattr(stack, 'hero', hero_instance)
             instance.add_stack(stack)
         setattr(hero_instance, 'combat_army', instance)
         return instance

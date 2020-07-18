@@ -23,3 +23,6 @@ class CombatFullSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
             'team_size', 'started', 'field')
+
+class FieldsSerializer(serializers.Serializer):
+    fields = serializers.JSONField()
