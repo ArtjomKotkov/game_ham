@@ -6,10 +6,8 @@ from .army import Army
 from .field import Fields
 from .hero import Heroes
 
-class Combats:
 
-    def __init__(self, name=None):
-        pass
+class Combats:
 
     @classmethod
     def load(cls, combat: Combat):
@@ -24,7 +22,7 @@ class Combats:
         return instance
 
     @classmethod
-    def create(cls, *, name, placement_time: int=3, placement_type: str = 'EQ', battle_type: str = 'DF',
+    def create(cls, *, name, placement_time: int = 3, placement_type: str = 'EQ', battle_type: str = 'DF',
                team_size: int = 1, started: bool = False, field: str):
         instance = cls.__new__(cls)
         combat = Combat.objects.create(name=name,
@@ -42,7 +40,10 @@ class Combats:
         setattr(instance, 'mg_team', combat.mg_team)
         setattr(instance, 'combat', combat)
         setattr(instance, 'field', Fields.get_field(battle_type=battle_type, team_size=team_size, name=field))
-        return combat
+        instance.initiative_list = []
+        instance.total_units = 0
+        instance.current_unit = None
+        return instance
 
     def set_name(self, name):
         assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
@@ -50,48 +51,6 @@ class Combats:
         self.combat.save(update_fields=['name'])
         self.name = name
         return self
-
-    def add_hero_to_left_team(self, hero):
-        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.battle_type == 'DF', 'Only default battle type provides left and right teams.'
-        assert self.left_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
-        self.left_team.add(hero)
-        hero.in_battle = self.combat.id
-        hero.save(update_fields=['in_battle'])
-        return self
-
-    def add_hero_to_right_team(self, hero):
-        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.battle_type == 'DF', 'Only default combat type provides left and right teams.'
-        assert self.right_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
-        self.combat.right_team.add(hero)
-        hero.in_battle = self.combat.id
-        hero.save(update_fields=['in_battle'])
-        return self
-
-    def add_hero_to_combat(self, hero):
-        """
-        Add user on MeatGrinder combat.
-        :param user:
-        :return:
-        """
-        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.battle_type == 'MG', 'Only MeatGrinder combat type provides this method.'
-        assert self.mg_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
-        self.mg_team.add(hero)
-        hero.in_battle = self.combat.id
-        hero.save(update_fields=['in_battle'])
-        return self
-
-    def start(self):
-        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.started == False, 'Combat already started'
-        # Initiate starting options
-        self._gather_heroes()
-        self._load_heroes_armyes()
-        self.started = True
-        self.combat.started = True
-        self.combat.save(update_fields=['started'])
 
     def get_all_stacks(self):
         all_stacks = []
@@ -106,6 +65,65 @@ class Combats:
     def get_stack(self, hero_id, stack_id):
         assert self.started == True, 'Combat must be started.'
         return self.get_hero(hero_id).get_army().get_stack(stack_id)
+
+    def next_turn(self):
+        self.handle_turn()
+
+    def handle_turn(self):
+        pass
+
+    def get_current_turn_unit(self):
+        return self.initiative_list[self._init_next()-1]
+
+    def _init_next(self):
+        if self.current_unit + 1 == self.total_units:
+            self.current_unit = 0
+        else:
+            self.current_unit += 1
+        return self.current_unit
+
+    def create_init_list(self):
+        assert self.started == True, 'Combat must be started.'
+        for id, hero in self.heroes.items():
+            self._add_hero_to_initiate_list(hero)
+            for stack in hero.get_army().get_all_stacks():
+                self._add_stack_to_initiate_list(stack)
+        self.sort_init_list()
+        self.current_unit = 0
+
+    def sort_init_list(self):
+        self.initiative_list.sort(key=lambda x: x['initiative'], reverse=True)
+
+    def _add_hero_to_initiate_list(self, hero):
+        self.initiative_list.append({
+            'object': hero,
+            'initiative': hero.initiative
+        })
+        self.total_units += 1
+
+    def _add_stack_to_initiate_list(self, stack):
+        self.initiative_list.append({
+            'object': stack,
+            'initiative': stack.unit.initiative
+        })
+        self.total_units += 1
+
+    def start(self):
+        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
+        assert self.started == False, 'Combat already started'
+        # Initiate starting options
+        self._gather_heroes()
+        self._load_heroes_armyes()
+
+        self.started = True
+
+        self.create_init_list()
+
+        self.combat.started = True
+        self.combat.save(update_fields=['started'])
+        delattr(self, 'left_team')
+        delattr(self, 'right_team')
+        delattr(self, 'mg_team')
 
     def _gather_heroes(self):
         self.iter_id = 0
@@ -131,4 +149,3 @@ class Combats:
             self.heroes = {
                 self.iter_id: Heroes.load_hero(hero)
             }
-

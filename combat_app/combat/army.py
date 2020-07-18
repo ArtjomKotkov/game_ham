@@ -5,7 +5,7 @@ from .units import UNIT_CLASSES
 class Stack:
 
     def __init__(self, unit_class, count: int):
-        self.unit = unit_class
+        self.unit = unit_class()
         self.start_count = count
         self.count = self.start_count
         self.alive = True if self.count > 0 else False
@@ -13,9 +13,13 @@ class Stack:
         self.last_unit_health = self.unit.health
         self.x_pos = 0
         self.y_pos = 0
-        for item, value in self.unit().__dict__().items():
+        for item, value in self.unit.__dict__().items():
             setattr(self, item, value)
         self.bufs = []
+
+    def get_initiative_boost_from_hero(self):
+        assert hasattr(self, 'hero'), 'Hero attr must be provided.'
+        self.unit.add_initiative(self.hero.initiative*0.1)
 
     def initiate_turn(self):
         self.answer = True
@@ -50,7 +54,7 @@ class Stack:
         Defense backend.
         :return:
         """
-        return (100-self.defense-self.hero.defense)/100
+        return (100-self.unit.defense-self.hero.defense)/100
 
     def take_damage(self, enemy):
         assert isinstance(enemy, Stack), 'enemy must be STACK instance.'
@@ -85,7 +89,7 @@ class Stack:
         return damage, killed_units
 
     def attack(self, enemy):
-        return self.unit.attack(self, enemy)
+        return self.unit.base_attack(self, enemy)
 
     def move(self, x, y):
         """
@@ -124,7 +128,9 @@ class Army:
             assert unit in UNIT_CLASSES, f'Invalid unit class [{unit}]'
             stack = Stack(UNIT_CLASSES[unit], count)
             setattr(stack, 'hero', hero_instance)
+            stack.get_initiative_boost_from_hero()
             instance.add_stack(stack)
+
         setattr(hero_instance, 'combat_army', instance)
         return instance
 
