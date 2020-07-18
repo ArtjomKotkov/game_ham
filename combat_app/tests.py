@@ -24,14 +24,12 @@ class TestCombat(TestCase):
         hero1 = Hero.create(user=self.user1, hero_name='test_hero_user_1', hero_class='Knight', army=army1)
         hero2 = Hero.create(user=self.user2, hero_name='test_hero_user_2', hero_class='Demon', army=army2)
 
-        self.combat = Combats.create(name='test', field='simple')
-        self.combat.add_hero_to_left_team(hero1)
-        self.combat.add_hero_to_right_team(hero2)
+        self.combat = Combats.create(name='test', field='Simple')
+        self.combat.combat.add_hero_to_left_team(hero1)
+        self.combat.combat.add_hero_to_right_team(hero2)
         self.combat.start()
 
     def test_one(self):
-        stack1 = self.combat.get_stack(0, 0)
-        stack2 = self.combat.get_stack(1, 1)
-        stack1.move(3, 0)
-        stack1.move(3, 0)
-        pprint.pprint(stack2.attack(stack1))
+        unit1 = self.combat.get_stack(0, 0)
+        unit2 = self.combat.get_stack(1, 0)
+        print(unit2.attack(unit1))

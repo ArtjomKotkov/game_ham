@@ -37,19 +37,25 @@ class UnitABS:
             cost=self.army_cost
         )
 
-    @classmethod
-    def pos_in_step_radius(cls, from_x, from_y, to_x, to_y):
-        return True if ((to_x - from_x) ** 2 + (to_y - from_y) ** 2) ** (1 / 2) <= cls.speed else False
+    def pos_in_step_radius(self, from_x, from_y, to_x, to_y):
+        return True if ((to_x - from_x) ** 2 + (to_y - from_y) ** 2) ** (1 / 2) <= self.speed else False
 
-    @classmethod
-    def base_movement(cls, from_x, from_y, to_x, to_y):
-        assert cls.pos_in_step_radius(from_x, from_y, to_x, to_y), 'New position not in radius.'
+    def base_movement(self, from_x, from_y, to_x, to_y):
+        assert self.pos_in_step_radius(from_x, from_y, to_x, to_y), 'New position not in radius.'
         return to_x, to_y
 
-    @classmethod
-    def answer_attack(cls, self_unit, enemy_unit):
+    def attack(self, self_unit, enemy_unit):
         output = {}
-        print(f'{self_unit.answer=} {self_unit.alive=} {self_unit.is_near(enemy_unit)=}')
+        if self_unit.alive:
+            damage, killed_units = enemy_unit.take_damage(self_unit)
+            output['enemy'] = {
+                'get_damage': [damage],
+                'killed_units': [killed_units]
+            }
+        return output
+
+    def answer_attack(self, self_unit, enemy_unit):
+        output = {}
         if self_unit.answer and self_unit.alive and self_unit.is_near(enemy_unit):
             self_unit.answer = False
             damage, killed_units = enemy_unit.take_damage(self_unit)
@@ -62,36 +68,14 @@ class UnitABS:
 
     # Attack modificators.
 
-    @classmethod
-    def double_attack(cls, self_unit, enemy_unit):
-        output = cls.base_attack(self_unit, enemy_unit)
-        if self_unit.alive:
-            damage, killed_units = enemy_unit.take_damage(self_unit)
-            output['enemy']['get_damage'].append(damage)
-            output['enemy']['killed_units'].append(killed_units)
-            add_or_create_list_in_dict(output, 'modify', 'double_attack')
-        return output
-
-    @classmethod
-    def base_attack(cls, self_unit, enemy_unit):
-        damage, killed_units = enemy_unit.take_damage(self_unit)
-        output = {
-            'enemy': {
-                'get_damage': [damage],
-                'killed_units': [killed_units]
-            },
-        }
-        answer_output = enemy_unit.unit.answer_attack(enemy_unit=enemy_unit, self_unit=self_unit)
+    def base_attack(self, self_unit, enemy_unit):
+        output = self_unit.unit.attack(self_unit=self_unit, enemy_unit=enemy_unit)
+        answer_output = enemy_unit.unit.answer_attack(self_unit=enemy_unit, enemy_unit=self_unit)
         output.update(answer_output)
         return output
 
-    @classmethod
-    def move(cls, from_x, from_y, to_x, to_y):
-        return cls.base_movement(from_x, from_y, to_x, to_y)
-
-    @classmethod
-    def attack(cls, self_unit, enemy_unit):
-        return cls.base_attack(self_unit, enemy_unit)
+    def move(self, from_x, from_y, to_x, to_y):
+        return self.base_movement(from_x, from_y, to_x, to_y)
 
     def __str__(self):
         return self.name
@@ -119,12 +103,6 @@ class UnitABS:
     def add_defense(self, value):
         self.defense += value
 
-    def add_mana(self, value):
-        self.mana += value
-
-    def add_spell_power(self, value):
-        self.spell_power += value
-
     def add_initiative(self, value):
         self.initiative += value
 
@@ -140,22 +118,6 @@ class UnitABS:
         self.add_defense(value)
         self.step_additionals.append({
             'method': self.add_defense,
-            'attrs': [-value],
-            'steps': steps
-        })
-
-    def add_temp_mana(self, value, steps):
-        self.add_mana(value)
-        self.step_additionals.append({
-            'method': self.add_mana,
-            'attrs': [-value],
-            'steps': steps
-        })
-
-    def add_temp_spell_power(self, value, steps):
-        self.add_spell_power(value)
-        self.step_additionals.append({
-            'method': self.add_spell_power,
             'attrs': [-value],
             'steps': steps
         })
@@ -180,20 +142,13 @@ class UnitABS:
                 additional['method'](*additional['attrs'])
                 self.step_additionals.remove(additional)
 
+
 # Additional abstract unit classes.
 class UnitDistanse(UnitABS):
     """
     Default distance unit.
     """
     type = 'distance'
-
-    @classmethod
-    def attack(self, self_unit, enemy_unit):
-        return super().attack(self_unit, enemy_unit)
-
-    @classmethod
-    def answer_attack(cls, self_unit, enemy_unit):
-        return super().answer_attack(self_unit, enemy_unit)
 
 
 class UnitMelee(UnitABS):
@@ -202,33 +157,47 @@ class UnitMelee(UnitABS):
     """
     type = 'melee'
 
-    @classmethod
-    def attack(self, self_unit, enemy_unit):
-        return super().attack(self_unit, enemy_unit)
-
-    @classmethod
-    def answer_attack(cls, self_unit, enemy_unit):
-        return super().answer_attack(self_unit, enemy_unit)
-
-    @classmethod
-    def base_attack(cls, self_unit, enemy_unit):
+    def base_attack(self, self_unit, enemy_unit):
         assert self_unit.is_near(enemy_unit), 'Melee unit must be near enemy.'
         return super().base_attack(self_unit, enemy_unit)
 
+class UnitMeleeDoubleAttack(UnitABS):
+    """
+    Default melee unit.
+    """
+    type = 'melee-double-attack'
+
+    def base_attack(self, self_unit, enemy_unit):
+        assert self_unit.is_near(enemy_unit), 'Melee unit must be near enemy.'
+        output = super().base_attack(self_unit, enemy_unit)
+        double_attack_output = self.attack(self_unit, enemy_unit)
+        output['enemy']['get_damage'].append(double_attack_output['enemy']['get_damage'])
+        output['enemy']['killed_units'].append(double_attack_output['enemy']['killed_units'])
+        add_or_create_list_in_dict(output, 'modify', 'double-attack')
+        return output
+
+class UnitDistanceDoubleAttack(UnitABS):
+    """
+    Default melee unit.
+    """
+    type = 'melee-double-attack'
+
+    def base_attack(self, self_unit, enemy_unit):
+        assert self_unit.is_near(enemy_unit), 'Melee unit must be near enemy.'
+        output = super().base_attack(self_unit, enemy_unit)
+        double_attack_output = self.attack(self_unit, enemy_unit)
+        output['enemy']['get_damage'].append(double_attack_output['enemy']['get_damage'])
+        output['enemy']['killed_units'].append(double_attack_output['enemy']['killed_units'])
+        add_or_create_list_in_dict(output, 'modify', 'double-attack')
+        return output
 
 class UnitDistanceAnswer(UnitDistanse):
     """
     Distance unit but make answer when somebody shoot or hit him.
     """
 
-    @classmethod
-    def attack(self, self_unit, enemy_unit):
-        return super().attack(self_unit, enemy_unit)
-
-    @classmethod
-    def answer_attack(cls, self_unit, enemy_unit):
+    def answer_attack(self, self_unit, enemy_unit):
         output = {}
-        print(f'{self_unit.answer=} {self_unit.alive=}')
         if self_unit.answer and self_unit.alive:
             self_unit.answer = False
             damage, killed_units = enemy_unit.take_damage(self_unit)
@@ -242,6 +211,27 @@ class UnitDistanceAnswer(UnitDistanse):
                 add_or_create_list_in_dict(output, 'modify', 'range-answer')
         return output
 
+class UnitUnlimitedAnswerMelee(UnitABS):
+    """
+    Distance unit but make answer when somebody shoot or hit him.
+    """
+
+    def answer_attack(self, self_unit, enemy_unit):
+        output = super().answer_attack(self_unit, enemy_unit)
+        self_unit.answer = True
+        return output
+
+class UnitUnlimitedAnswerDistance(UnitDistanceAnswer):
+    """
+    Distance unit but make answer when somebody shoot or hit him.
+    """
+
+    def answer_attack(self, self_unit, enemy_unit):
+        output = super().answer_attack(self_unit, enemy_unit)
+        self_unit.answer = True
+        return output
+
+# Классы юнитов
 
 class Unit:
 
