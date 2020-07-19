@@ -25,6 +25,10 @@ SECRET_KEY = '*#@_vk)v&de7ifpp@7jv1x)$*aw1r=u1gk&04h=n0)ti%+^=ls'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)
+
 ALLOWED_HOSTS = []
 
 

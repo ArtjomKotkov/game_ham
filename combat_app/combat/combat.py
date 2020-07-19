@@ -19,6 +19,11 @@ class Combats:
         setattr(instance, 'right_team', combat.right_team)
         setattr(instance, 'mg_team', combat.mg_team)
         setattr(instance, 'combat', combat)
+        instance.initiative_list = []
+        instance.total_units = 0
+        instance.current_unit = None
+        if combat.started == True:
+            instance.start(force=True)
         return instance
 
     @classmethod
@@ -45,6 +50,9 @@ class Combats:
         instance.current_unit = None
         return instance
 
+    def next_turn(self):
+        pass
+
     def set_name(self, name):
         assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
         self.combat.name = name
@@ -66,21 +74,8 @@ class Combats:
         assert self.started == True, 'Combat must be started.'
         return self.get_hero(hero_id).get_army().get_stack(stack_id)
 
-    def next_turn(self):
-        self.handle_turn()
-
-    def handle_turn(self):
-        pass
-
     def get_current_turn_unit(self):
         return self.initiative_list[self._init_next()-1]
-
-    def _init_next(self):
-        if self.current_unit + 1 == self.total_units:
-            self.current_unit = 0
-        else:
-            self.current_unit += 1
-        return self.current_unit
 
     def create_init_list(self):
         assert self.started == True, 'Combat must be started.'
@@ -93,6 +88,41 @@ class Combats:
 
     def sort_init_list(self):
         self.initiative_list.sort(key=lambda x: x['initiative'], reverse=True)
+
+    def start(self, force=False):
+        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
+        if not force:
+            assert self.started == False, 'Combat already started'
+        # Initiate starting options
+        self._gather_heroes()
+        self._load_heroes_armyes()
+
+        self.started = True
+
+        self.create_init_list()
+
+        self.combat.started = True
+        self.combat.save(update_fields=['started'])
+        delattr(self, 'left_team')
+        delattr(self, 'right_team')
+        delattr(self, 'mg_team')
+
+    def begin_war(self):
+        pass
+
+    def start_serilize(self):
+        return {
+            'battle_type': 'DF',
+            'placement_time': 3,
+            'team_size': 1
+        }
+
+    def _init_next(self):
+        if self.current_unit + 1 == self.total_units:
+            self.current_unit = 0
+        else:
+            self.current_unit += 1
+        return self.current_unit
 
     def _add_hero_to_initiate_list(self, hero):
         self.initiative_list.append({
@@ -108,31 +138,17 @@ class Combats:
         })
         self.total_units += 1
 
-    def start(self):
-        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.started == False, 'Combat already started'
-        # Initiate starting options
-        self._gather_heroes()
-        self._load_heroes_armyes()
-
-        self.started = True
-
-        self.create_init_list()
-
-        self.combat.started = True
-        self.combat.save(update_fields=['started'])
-        delattr(self, 'left_team')
-        delattr(self, 'right_team')
-        delattr(self, 'mg_team')
-
     def _gather_heroes(self):
         self.iter_id = 0
         for hero in self.left_team.all():
             self._create_hero_id(hero)
+            setattr(hero, 'team', 'left')
         for hero in self.right_team.all():
             self._create_hero_id(hero)
+            setattr(hero, 'team', 'right')
         for hero in self.mg_team.all():
             self._create_hero_id(hero)
+            setattr(hero, 'team', 'mg')
 
     def _load_heroes_armyes(self):
         assert hasattr(self, 'heroes'), 'No heroes in combat!'

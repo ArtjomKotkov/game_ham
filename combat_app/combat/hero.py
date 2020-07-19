@@ -28,7 +28,7 @@ class HeroABS:
         Army.load_army(self)
 
     @classmethod
-    def get_available_stacks(cls, level):
+    def get_available_stacks(cls, level) -> list:
         if level not in cls.aviable_stacks:
             return [{
                 'name': unit.name,
@@ -39,6 +39,13 @@ class HeroABS:
                 'name': unit.name,
                 'cost': unit.army_cost
             } for unit in cls.aviable_stacks[level]]
+
+    @classmethod
+    def get_available_stacks_list(cls, level) -> list:
+        if level not in cls.aviable_stacks:
+            return [unit for unit in cls.aviable_stacks_all]
+        else:
+            return [unit for unit in cls.aviable_stacks[level]]
 
     @classmethod
     def serialize(cls):
@@ -55,6 +62,23 @@ class HeroABS:
                 'Очки маны':cls.mana*10,
                 'Сила заклинаний':cls.spell_power,
                 'Инициатива':cls.initiative
+            }
+        )
+
+    def start_serialize(self):
+        units = [unit.serialize_short() for unit in self.get_available_stacks_list(self.hero.level)]
+        return dict(
+            name=self.name,
+            description=self.description,
+            units=units,
+            class_name=self.__class__.__name__,
+            image=self.image,
+            stats={
+                'Атака': self.attack,
+                'Защита': self.defense,
+                'Очки маны': self.mana * 10,
+                'Сила заклинаний': self.spell_power,
+                'Инициатива': self.initiative
             }
         )
 

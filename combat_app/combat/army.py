@@ -4,21 +4,23 @@ from .units import UNIT_CLASSES
 
 class Stack:
 
-    def __init__(self, unit_class, count: int):
+    def __init__(self, unit_class, count: int, hero):
+        self.hero = hero
         self.unit = unit_class()
+        self.unit_get_boosts_from_hero()
         self.start_count = count
         self.count = self.start_count
         self.alive = True if self.count > 0 else False
         self.answer = True
         self.last_unit_health = self.unit.health
-        self.x_pos = 0
-        self.y_pos = 0
+        self.x_pos = None
+        self.y_pos = None
+        self.on_field = False
         for item, value in self.unit.__dict__().items():
             setattr(self, item, value)
         self.bufs = []
 
-    def get_initiative_boost_from_hero(self):
-        assert hasattr(self, 'hero'), 'Hero attr must be provided.'
+    def unit_get_boosts_from_hero(self):
         self.unit.add_initiative(self.hero.initiative*0.1)
 
     def initiate_turn(self):
@@ -126,22 +128,20 @@ class Army:
         setattr(instance, 'max_id', None)
         for unit, count in hero_instance.get_hero().army.items():
             assert unit in UNIT_CLASSES, f'Invalid unit class [{unit}]'
-            stack = Stack(UNIT_CLASSES[unit], count)
-            setattr(stack, 'hero', hero_instance)
-            stack.get_initiative_boost_from_hero()
+            stack = Stack(UNIT_CLASSES[unit], count, hero_instance)
             instance.add_stack(stack)
 
         setattr(hero_instance, 'combat_army', instance)
         return instance
 
-    def increase_max_id(self):
+    def _increase_max_id(self):
         if self.max_id != None:
             self.max_id += 1
         else:
             self.max_id = 0
 
     def add_stack(self, stack:Stack):
-        self.increase_max_id()
+        self._increase_max_id()
         self.units.update({
             self.max_id: stack
         })

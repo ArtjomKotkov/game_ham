@@ -93,3 +93,11 @@ class Combat(models.Model):
             else:
                 self.add_hero_to_right_team(hero)
 
+    def hero_in_combat(self, hero):
+        if hero in self.left_team.all() or \
+            hero in self.right_team.all() or \
+            hero in self.mg_team.all():
+            return True
+        else:
+            return False
+

@@ -37,11 +37,11 @@ class UnitABS:
             cost=self.army_cost
         )
 
-    def pos_in_step_radius(self, from_x, from_y, to_x, to_y):
+    def _pos_in_step_radius(self, from_x, from_y, to_x, to_y):
         return True if ((to_x - from_x) ** 2 + (to_y - from_y) ** 2) ** (1 / 2) <= self.speed else False
 
     def base_movement(self, from_x, from_y, to_x, to_y):
-        assert self.pos_in_step_radius(from_x, from_y, to_x, to_y), 'New position not in radius.'
+        assert self._pos_in_step_radius(from_x, from_y, to_x, to_y), 'New position not in radius.'
         return to_x, to_y
 
     def attack(self, self_unit, enemy_unit):
@@ -259,7 +259,7 @@ class Unit:
         speed = 3
         army_cost = 700
 
-    class Devil(UnitDistanceAnswer):
+    class Devil(UnitMelee):
         human_readable = 'Черт'
         name = 'Devil'
         image = None
@@ -283,7 +283,7 @@ class Unit:
         speed = 8
         army_cost = 100
 
-    class Griffin(UnitMelee):
+    class Griffin(UnitUnlimitedAnswerMelee):
         name = 'Griffin'
         human_readable = 'Грифон'
         image = None

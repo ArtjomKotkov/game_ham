@@ -51,8 +51,8 @@ class CombatsConsumer(JsonWebsocketConsumer):
 
             combat.add_to_random_team(self.scope["user"].heroapp.selected_hero)
             output.setdefault('created', {}).update({
-                'combat':CombatFullSerializer(combat).data,
-                'hero_id':self.scope["user"].heroapp.selected_hero.id
+                'combat': CombatFullSerializer(combat).data,
+                'hero_id': self.scope["user"].heroapp.selected_hero.id
             })
 
         if 'exit' in content:
@@ -73,7 +73,7 @@ class CombatsConsumer(JsonWebsocketConsumer):
                 })
             team = combat.delete_hero_from_combat(hero)
             output.setdefault('exit', {}).update({
-                'status':True,
+                'status': True,
                 'team': team,
                 'combat_index': data['combat_index'],
                 'hero_id': data['hero_id']
@@ -139,3 +139,79 @@ class CombatsConsumer(JsonWebsocketConsumer):
                 'combat_id': data.get('combat_id', -1)
             })
         return output
+
+
+class CombatManager:
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super().__new__(cls)
+            setattr(cls.instance, 'current_combats', {})
+        return cls.instance
+
+    def add_combat(self, combat: Combats):
+        self.current_combats.update({
+            f'combat_{combat.combat.id}': combat
+        })
+
+    def del_combat(self, pk):
+        del self.current_combats[f'combat_{pk}']
+
+    def get_combat(self, pk):
+        return self.current_combats[f'combat_{pk}']
+
+    def load_all_started(self):
+        """
+        Using when server was crashed.
+        :param pk:
+        :return:
+        """
+        combats = Combat.objects.filter(started=True)
+        for combat in combats:
+            self.add_combat(combat)
+
+
+class CombatConsumer(JsonWebsocketConsumer):
+    def connect(self):
+        self.accept()
+        combat = Combat.objects.get(pk=int(self.scope['url_route']['kwargs']['pk']))
+
+        async_to_sync(self.channel_layer.group_add)(f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
+                                                    self.channel_name)
+
+        combat_inst = Combats.load(combat)
+        CombatManager().add_combat(combat_inst)
+
+        if combat.hero_in_combat(self.scope['user'].heroapp.selected_hero):
+            async_to_sync(self.channel_layer.group_send)(
+                f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
+                {
+                    "type": "all_combat.message",
+                    "data": combat_inst.start_serilize()
+                },
+            )
+            self.combat_message(combat_inst.get_hero(self.scope['user'].heroapp.selected_hero.id).start_serialize())
+        else:
+            pass
+
+    def combat_message(self, message):
+        print(message)
+        self.send_json(message)
+
+    def all_combat_message(self, event):
+        print(event['data'])
+        self.send_json(event['data'])
+
+    def disconnect(self, close_code):
+        async_to_sync(self.channel_layer.group_discard)(f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
+                                                        self.channel_name)
+
+    def receive_json(self, content, **kwargs):
+        print(content)
+        async_to_sync(self.channel_layer.group_send)(
+            f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
+            {
+                "type": "combat_list.message",
+                "data": 'blank',
+            },
+        )

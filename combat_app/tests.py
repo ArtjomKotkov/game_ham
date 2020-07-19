@@ -30,6 +30,4 @@ class TestCombat(TestCase):
         self.combat.start()
 
     def test_one(self):
-        unit1 = self.combat.get_stack(0, 0)
-        unit2 = self.combat.get_stack(1, 0)
-        print(unit2.attack(unit1))
+        pprint.pprint(self.combat.__dict__)
