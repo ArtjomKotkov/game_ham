@@ -115,6 +115,8 @@ class CombatsConsumer(JsonWebsocketConsumer):
                     'status': False,
                     'error': 'Hero does not exist, or hero_id doesn\'t provided.'
                 })
+            if combat.hero_in_combat():
+                return
             if data['team'] == 'left':
                 combat.add_hero_to_left_team(hero)
                 output.setdefault('connect', {}).update({
@@ -130,6 +132,7 @@ class CombatsConsumer(JsonWebsocketConsumer):
                 output.setdefault('connect', {}).update({
                     'team': 'mg',
                 })
+
             output.setdefault('connect', {}).update({
                 'status': True,
                 'combat_index': data['combat_index'],
@@ -168,7 +171,7 @@ class CombatManager:
         """
         combats = Combat.objects.filter(started=True)
         for combat in combats:
-            self.add_combat(combat)
+            self.add_combat(Combats(combat))
 
 
 class CombatConsumer(JsonWebsocketConsumer):
@@ -179,7 +182,7 @@ class CombatConsumer(JsonWebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
                                                     self.channel_name)
 
-        combat_inst = Combats.load(combat)
+        combat_inst = Combats(combat)
         CombatManager().add_combat(combat_inst)
 
         if combat.hero_in_combat(self.scope['user'].heroapp.selected_hero):

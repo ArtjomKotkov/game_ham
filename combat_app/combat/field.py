@@ -1,5 +1,5 @@
-# from ..models import Field
 import inspect
+
 
 class Obstacles:
 

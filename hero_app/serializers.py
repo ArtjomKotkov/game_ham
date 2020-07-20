@@ -3,7 +3,7 @@ import re
 from rest_framework import serializers
 
 from .models import Hero, Spell, SpellTome
-from combat_app.combat.units import UNIT_CLASSES
+from combat_app.combat.unit.basic import UNIT_CLASSES
 
 
 # Spells serializers.

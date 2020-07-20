@@ -6,7 +6,7 @@ from django.contrib.auth import login, logout
 from django.http import JsonResponse
 
 from .forms import RegisterForm, AuthForm
-from combat_app.combat.hero import HEROES_CLASSES
+from combat_app.combat.hero.basic import HEROES_CLASSES
 from hero_app.models import Hero
 import pprint
 

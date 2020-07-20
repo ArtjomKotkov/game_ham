@@ -4,8 +4,8 @@ from django.core.validators import MinValueValidator
 from django.urls import reverse
 
 from .levels import Levels
-from combat_app.combat.hero import HEROES_CLASSES, HEROES_MODEL_CHOICES
-from combat_app.combat.units import UNIT_CLASSES
+from combat_app.combat.hero.basic import HEROES_CLASSES, HEROES_MODEL_CHOICES
+from combat_app.combat.unit.basic import UNIT_CLASSES
 
 
 class Hero(models.Model):

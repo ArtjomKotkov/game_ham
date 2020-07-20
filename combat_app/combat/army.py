@@ -1,23 +1,22 @@
 import random
-from .units import UNIT_CLASSES
+from .unit.basic import UNIT_CLASSES
 
 
 class Stack:
 
-    def __init__(self, unit_class, count: int, hero):
+    def __init__(self, unit_class, count: int, hero=False):
         self.hero = hero
         self.unit = unit_class()
-        self.unit_get_boosts_from_hero()
+        if hero:
+            self.unit_get_boosts_from_hero()
         self.start_count = count
         self.count = self.start_count
         self.alive = True if self.count > 0 else False
         self.answer = True
         self.last_unit_health = self.unit.health
-        self.x_pos = None
-        self.y_pos = None
+        self.x_pos = 0
+        self.y_pos = 0
         self.on_field = False
-        for item, value in self.unit.__dict__().items():
-            setattr(self, item, value)
         self.bufs = []
 
     def unit_get_boosts_from_hero(self):
@@ -56,11 +55,11 @@ class Stack:
         Defense backend.
         :return:
         """
-        return (100-self.unit.defense-self.hero.defense)/100
+        return (100-self.unit.defense-self.hero.defense)/100 if self.hero else (100-self.unit.defense)/100
 
     def take_damage(self, enemy):
         assert isinstance(enemy, Stack), 'enemy must be STACK instance.'
-        damage = int(random.randrange(enemy.min_attack, enemy.max_attack)*enemy.count*self.defense_back())
+        damage = int(random.randrange(enemy.unit.min_attack, enemy.unit.max_attack)*enemy.count*self.defense_back())
         killed_units = 0
         if damage >= self.last_unit_health + self.unit.health * (self.count - 1):
             killed_units = self.count
@@ -70,7 +69,11 @@ class Stack:
             remainder = (damage % self.unit.health)
             self.add_unit(-killed_units)
             self.last_unit_health -= remainder
-        return damage, killed_units
+        return {
+            'name': self.unit.name,
+            'get_damage': damage,
+            'killed_units': killed_units
+        }
 
     def take_damage_from_hero(self, hero):
         """
@@ -101,8 +104,12 @@ class Stack:
         """
         assert x >= 0, 'X must be more or equal 0.'
         assert y >= 0, 'Y must be more or equal 0.'
-        self.x_pos, self.y_pos = self.unit.move(self.x_pos, self.y_pos, x, y)
+        self.x_pos, self.y_pos = self.unit.base_movement(self.x_pos, self.y_pos, x, y)
         return self.x_pos, self.y_pos
+
+    def set_pos(self, x, y):
+        self.x_pos = x
+        self.y_pos = y
 
     def is_near(self, enemy):
         assert isinstance(enemy, Stack), 'Enemy must be STACK instance.'
@@ -114,25 +121,17 @@ class Stack:
         return self.x_pos, self.y_pos
 
     def __str__(self):
-        return self.name
+        return self.unit.name
 
 class Army:
-    def __init__(self):
+    def __init__(self, hero):
         self.units = {}
         self.max_id = None
-
-    @classmethod
-    def load_army(cls, hero_instance):
-        instance = cls.__new__(cls)
-        setattr(instance, 'units', {})
-        setattr(instance, 'max_id', None)
-        for unit, count in hero_instance.get_hero().army.items():
+        for unit, count in hero.get_hero().army.items():
             assert unit in UNIT_CLASSES, f'Invalid unit class [{unit}]'
-            stack = Stack(UNIT_CLASSES[unit], count, hero_instance)
-            instance.add_stack(stack)
-
-        setattr(hero_instance, 'combat_army', instance)
-        return instance
+            stack = Stack(UNIT_CLASSES[unit], count, hero)
+            self.add_stack(stack)
+        self.hero = hero
 
     def _increase_max_id(self):
         if self.max_id != None:
