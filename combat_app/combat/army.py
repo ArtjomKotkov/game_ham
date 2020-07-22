@@ -17,7 +17,6 @@ class Stack:
         self.x_pos = 0
         self.y_pos = 0
         self.on_field = False
-        self.bufs = []
 
     def unit_get_boosts_from_hero(self):
         self.unit.add_initiative(self.hero.initiative*0.1)
@@ -48,7 +47,7 @@ class Stack:
         self.last_unit_health = self.unit.health if value > self.unit.health else value
 
     def defend(self):
-        pass
+        return self.unit.base_defend()
 
     def defense_back(self):
         """
@@ -123,7 +122,22 @@ class Stack:
     def __str__(self):
         return self.unit.name
 
+    def serialize(self):
+        return dict(
+            x=self.x_pos,
+            y=self.y_pos,
+            unit=self.unit.__dict__(),
+            start_count=self.start_count,
+            count=self.count,
+            alive=self.alive,
+            answer=self.answer,
+            last_unit_health=self.last_unit_health,
+            on_field=self.on_field,
+        )
+
+
 class Army:
+
     def __init__(self, hero):
         self.units = {}
         self.max_id = None
@@ -168,5 +182,8 @@ class Army:
         for id, unit in self.units.items():
             output_dict.update({id:unit.__dict__})
         return output_dict
+
+    def serialize(self):
+        return  {id:unit.serialize() for id, unit in self.units.items()}
 
 

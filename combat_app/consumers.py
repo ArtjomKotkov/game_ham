@@ -1,5 +1,4 @@
-import json
-import random
+import pprint
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
 from django.urls import reverse
@@ -185,36 +184,35 @@ class CombatConsumer(JsonWebsocketConsumer):
         combat_inst = Combats(combat)
         CombatManager().add_combat(combat_inst)
 
-        if combat.hero_in_combat(self.scope['user'].heroapp.selected_hero):
-            async_to_sync(self.channel_layer.group_send)(
-                f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
-                {
-                    "type": "all_combat.message",
-                    "data": combat_inst.start_serilize()
-                },
-            )
-            self.combat_message(combat_inst.get_hero(self.scope['user'].heroapp.selected_hero.id).start_serialize())
-        else:
-            pass
-
     def combat_message(self, message):
-        print(message)
+        pprint.pprint(message)
         self.send_json(message)
 
     def all_combat_message(self, event):
-        print(event['data'])
+        pprint.pprint(event['data'])
         self.send_json(event['data'])
+
+    def group_message(self, message):
+        async_to_sync(self.channel_layer.group_send)(
+            f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
+            {
+                "type": "all_combat.message",
+                "data": message
+            },
+        )
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
                                                         self.channel_name)
 
     def receive_json(self, content, **kwargs):
-        print(content)
-        async_to_sync(self.channel_layer.group_send)(
-            f'combat_{self.scope["url_route"]["kwargs"]["pk"]}',
-            {
-                "type": "combat_list.message",
-                "data": 'blank',
-            },
-        )
+        if 'command' in content:
+            if content['command'] == 'load_battle':
+                pk = int(self.scope["url_route"]["kwargs"]["pk"])
+                combat = CombatManager().get_combat(pk)
+                self.group_message(combat.combat_info())
+
+
+
+
+

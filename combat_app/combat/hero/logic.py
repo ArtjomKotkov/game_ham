@@ -13,6 +13,7 @@ class HeroABS:
     image = '/static/combat_app/units/blank.png'
     background = ''
     step_additionals = []
+    team = None
 
     def get_hero(self):
         return self.hero if hasattr(self, 'hero') else None
@@ -63,11 +64,11 @@ class HeroABS:
         )
 
     def start_serialize(self):
-        units = [unit.serialize_short() for unit in self.get_available_stacks_list(self.hero.level)]
         return dict(
             name=self.name,
+            team=self.team,
             description=self.description,
-            units=units,
+            army=self.combat_army.serialize(),
             class_name=self.__class__.__name__,
             image=self.image,
             stats={

@@ -165,6 +165,17 @@ class Fields:
         return True, 'Success.'
 
     @classmethod
+    def full_serialize(cls, field_class):
+        return dict(
+            hero_placement_height=field_class.hero_placement_height,
+            image=field_class.image,
+            name=field_class.name,
+            obstacles= field_class.obstacles.__dict__(),
+            height=field_class.height,
+            width=field_class.width,
+        )
+
+    @classmethod
     def is_obstacle(cls, x:int, y:int):
         return cls.obstacles.is_obstacle(x, y)
 

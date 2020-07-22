@@ -31,6 +31,7 @@ class Combat(models.Model):
     team_size = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)], default=1, null=True)
     started = models.BooleanField(default=False)
     field = models.CharField(max_length=30)
+    status = models.CharField(max_length=15, null=True)
 
     def save(self, *args, **kwargs):
         if self.battle_type == 'DF' and self.team_size > 3:

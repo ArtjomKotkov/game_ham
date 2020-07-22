@@ -56,7 +56,7 @@ class UnitABS:
         #if self_unit.answer and self_unit.alive and self_unit.is_near(enemy_unit):
             #self_unit.answer = False
         self_unit.answer = answer
-        output_attack = self.attack('self', self_unit, enemy_unit)
+        output_attack = self.attack('attacker', self_unit, enemy_unit)
         output.update(output_attack)
         output.setdefault('modify', []).append('answer')
         return output
@@ -88,7 +88,8 @@ class UnitABS:
         self.add_temp_initiative(3, 1)
 
     def add_attack(self, value):
-        self.attack += value
+        self.min_attack += value
+        self.max_attack += value
 
     def add_defense(self, value):
         self.defense += value
@@ -134,6 +135,7 @@ class UnitABS:
 
 
 class UnitAbstractClasses:
+
     class UnitDistanse(UnitABS):
         """
         Default distance unit.
@@ -176,7 +178,7 @@ class UnitAbstractClasses:
             if self_unit.is_near(enemy_unit):
                 double_attack_output = self.attack('enemy-double', self_unit, enemy_unit)
                 output.update(double_attack_output)
-                output.setdefault('modify', ['double-attack']).append('double-attack')
+                output.setdefault('modify', []).append('double-attack')
             return output
 
 
@@ -190,7 +192,7 @@ class UnitAbstractClasses:
             output = super().base_attack(self_unit, enemy_unit)
             double_attack_output = self.attack('enemy-double', self_unit, enemy_unit)
             output.update(double_attack_output)
-            output.setdefault('modify', ['double-attack']).append('double-attack')
+            output.setdefault('modify', []).append('double-attack')
             return output
 
 
@@ -202,9 +204,11 @@ class UnitAbstractClasses:
 
         def answer_attack(self, self_unit, enemy_unit, answer=True):
             output = {}
-            output.setdefault('modify', ['range-answer']).append('range-answer')
-            answer_output = super().answer_attack(self_unit, enemy_unit) if self_unit.answer else {}
+            output.setdefault('modify', []).append('range-answer')
+            self_unit.answer = answer
+            answer_output = self.attack('attacker', self_unit, enemy_unit)
             output.update(answer_output)
+
             return output
 
     class UnitUnlimitedAnswerMelee(UnitMelee):

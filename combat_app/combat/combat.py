@@ -29,7 +29,7 @@ class Combats:
                                       name=self.combat.field)
         self.turn = 0
         self.started = combat.started
-        self.status = None
+        self.status = combat.status
         if combat.started == True:
             self.start(force=True)
 
@@ -46,19 +46,6 @@ class Combats:
                                        started=started,
                                        field=field)
         return Combats(combat)
-
-    def set_status_prepare(self):
-        self.status = 'prepare'
-
-    def set_status_in_battle(self):
-        self.status = 'in_battle'
-
-    @property
-    def in_battle(self):
-        return True if self.status == 'in_battle' else False
-
-    def set_status_ended(self):
-        self.status = 'ended'
 
     def next_turn(self):
         pass
@@ -113,12 +100,23 @@ class Combats:
 
         self.create_init_list()
 
-    def start_serilize(self):
-        return {
-            'battle_type': 'DF',
-            'placement_time': 3,
-            'team_size': 1
-        }
+    def combat_info(self):
+
+        if self.status == 'prepare':
+            return {
+                'battle_type': 'DF',
+                'placement_time': 3,
+                'team_size': 1,
+                'field': Fields.full_serialize(self.field)
+            }
+        elif self.status == 'in_battle':
+            return {
+                'battle_type': 'DF',
+                'placement_time': 3,
+                'team_size': 1,
+                'field': Fields.full_serialize(self.field),
+                'heroes': {id: hero.start_serialize() for id, hero in self.heroes.items()}
+            }
 
     def _init_next(self):
         if self.current_unit + 1 == self.total_units:
