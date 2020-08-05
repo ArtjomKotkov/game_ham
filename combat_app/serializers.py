@@ -10,7 +10,7 @@ class CombatShortSerializer(serializers.ModelSerializer):
         model = Combat
         fields = (
             'id', 'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
-            'team_size', 'started', 'field')
+            'team_size', 'status', 'field')
 
 class CombatFullSerializer(serializers.ModelSerializer):
 
@@ -22,7 +22,7 @@ class CombatFullSerializer(serializers.ModelSerializer):
         model = Combat
         fields = (
             'id', 'name', 'placement_time', 'placement_type', 'battle_type', 'left_team', 'right_team', 'mg_team',
-            'team_size', 'started', 'field')
+            'team_size', 'status', 'field')
 
 class FieldsSerializer(serializers.Serializer):
     fields = serializers.JSONField()

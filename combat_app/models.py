@@ -6,32 +6,39 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from hero_app.models import Hero
 from .combat.field import Fields
 
-
 TYPES = (
-        ('FR', 'Free'),
-        ('EQ', 'Equal'),
-        ('MG', 'MeatGrinder')
-    )
+    ('FR', 'Free'),
+    ('EQ', 'Equal'),
+    ('MG', 'MeatGrinder')
+)
 
 TYPES_COMBAT = (
-        ('DF', 'TeamVsTeam'),
-        ('MG', 'MeatGrinder')
-    )
+    ('DF', 'TeamVsTeam'),
+    ('MG', 'MeatGrinder')
+)
+
+COMBAT_STATUSES = [
+    (None, 'None'),
+    ('load', 'Loading'),
+    ('prepare', 'Prepare'),
+    ('inbattle', 'In Battle'),
+    ('ended', 'Ended'),
+]
+
 
 class Combat(models.Model):
     name = models.CharField(max_length=80)
     datetime = models.DateTimeField(auto_now_add=True)
     duration = models.DurationField(null=True)
-    placement_time = models.IntegerField(validators=[MinValueValidator(3)]) # Minutes for connect players.
+    placement_time = models.IntegerField(validators=[MinValueValidator(3)])  # Minutes for connect players.
     placement_type = models.CharField(choices=TYPES, default='EQ', max_length=2)
     battle_type = models.CharField(choices=TYPES_COMBAT, default='DF', max_length=2)
     left_team = models.ManyToManyField(Hero, blank=True, related_name='lt')
     right_team = models.ManyToManyField(Hero, blank=True, related_name='rt')
     mg_team = models.ManyToManyField(Hero, blank=True, related_name='mgt')
     team_size = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)], default=1, null=True)
-    started = models.BooleanField(default=False)
     field = models.CharField(max_length=30)
-    status = models.CharField(max_length=15, null=True)
+    status = models.CharField(max_length=8, null=True, blank=True, default=None, choices=COMBAT_STATUSES)
 
     def save(self, *args, **kwargs):
         if self.battle_type == 'DF' and self.team_size > 3:
@@ -96,9 +103,20 @@ class Combat(models.Model):
 
     def hero_in_combat(self, hero):
         if hero in self.left_team.all() or \
-            hero in self.right_team.all() or \
-            hero in self.mg_team.all():
+                hero in self.right_team.all() or \
+                hero in self.mg_team.all():
             return True
         else:
             return False
 
+    def set_status(self, status):
+        assert status in (stts[0] for stts in COMBAT_STATUSES), 'Invalid combat status.'
+        self.status = status
+        self.save(update_fields=['status'])
+
+    @property
+    def is_started(self):
+        statuses = [stts[0] for stts in COMBAT_STATUSES]
+        statuses.remove(None)
+        statuses.remove('ended')
+        return True if self.status in statuses else False

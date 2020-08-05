@@ -8,12 +8,13 @@ from combat_app.combat.combat import Combats
 from hero_app.models import Hero
 from .models import Combat
 from .serializers import CombatFullSerializer
+from .combat.combat_manager import CombatManager
 
 
 class CombatsConsumer(JsonWebsocketConsumer):
     def connect(self):
         self.accept()
-        combats = Combat.objects.all().order_by('battle_type')
+        combats = Combat.objects.filter(status=None).order_by('battle_type')
         self.send_json({'basic': CombatFullSerializer(combats, many=True).data})
         async_to_sync(self.channel_layer.group_add)("combat_list", self.channel_name)
 
@@ -141,36 +142,6 @@ class CombatsConsumer(JsonWebsocketConsumer):
                 'combat_id': data.get('combat_id', -1)
             })
         return output
-
-
-class CombatManager:
-
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super().__new__(cls)
-            setattr(cls.instance, 'current_combats', {})
-        return cls.instance
-
-    def add_combat(self, combat: Combats):
-        self.current_combats.update({
-            f'combat_{combat.combat.id}': combat
-        })
-
-    def del_combat(self, pk):
-        del self.current_combats[f'combat_{pk}']
-
-    def get_combat(self, pk):
-        return self.current_combats[f'combat_{pk}']
-
-    def load_all_started(self):
-        """
-        Using when server was crashed.
-        :param pk:
-        :return:
-        """
-        combats = Combat.objects.filter(started=True)
-        for combat in combats:
-            self.add_combat(Combats(combat))
 
 
 class CombatConsumer(JsonWebsocketConsumer):

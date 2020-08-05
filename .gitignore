@@ -2,3 +2,6 @@
 *.pyc
 
 hero_app/testing.py
+Pipfile
+db.sqlite3
+.idea

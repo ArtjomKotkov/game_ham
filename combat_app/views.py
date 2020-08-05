@@ -18,7 +18,7 @@ class CombatListView(ListView):
 
 def cobmat(request, pk):
     combat = get_object_or_404(Combat, pk=pk)
-    if not combat.started:
+    if not combat.is_started:
         return HttpResponseForbidden()
     context = {
         'combat_pk': pk

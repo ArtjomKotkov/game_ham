@@ -293,6 +293,7 @@ $(document).ready(function() {
 			onmessage: function (event) {
 				this.loaded = true;
 				var data = JSON.parse(event.data);
+				console.log(data)
 				if ('created' in data) {
 					this.create(data.created);
 				} else if ('basic' in data) {

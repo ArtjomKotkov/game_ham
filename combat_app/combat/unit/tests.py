@@ -70,7 +70,7 @@ class TestsUnitMelee(TestCase):
     def test_melee_unit_answer_distance(self):
         self.melee_unit.set_pos(10, 10)
         attack_output = self.test_unit.attack(self.melee_unit)
-        self.assertNotIn('self', attack_output)
+        self.assertNotIn('attacker', attack_output)
 
     def test_melee_unit_attack_close(self):
         attack_output = self.melee_unit.attack(self.test_unit)
@@ -125,7 +125,7 @@ class TestsUnitMeleeDoubleAttack(TestCase):
         attack_output = self.da_melee.attack(self.test_unit)
         self.assertIn('enemy-double', attack_output)
         self.assertIn('enemy', attack_output)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
 
     def test_double_attack_distance(self):
         self.da_melee.set_pos(10, 10)
@@ -146,7 +146,7 @@ class TestsUnitDistanceDoubleAttack(TestCase):
         attack_output = self.da_distance.attack(self.test_unit)
         self.assertIn('enemy-double', attack_output)
         self.assertIn('enemy', attack_output)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
 
 
 class TestsUnitDistanceAnswer(TestCase):
@@ -160,7 +160,7 @@ class TestsUnitDistanceAnswer(TestCase):
     def test_answer_distance(self):
         self.a_distance.set_pos(10, 10)
         attack_output = self.test_unit.attack(self.a_distance)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
         self.assertIn(self.modify, attack_output)
 
 
@@ -174,12 +174,12 @@ class TestsUnitUnlimitedAnswerMelee(TestCase):
 
     def test_unlimited_answer(self):
         attack_output = self.a_melee.attack(self.test_unit)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
         self.assertIn(self.modify, attack_output)
         self.assertIn(self.answer_modify, attack_output[self.modify])
 
         attack_output = self.a_melee.attack(self.test_unit)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
         self.assertIn(self.modify, attack_output)
         self.assertIn(self.answer_modify, attack_output[self.modify])
 
@@ -195,12 +195,12 @@ class TestsUnitUnlimitedAnswerDistance(TestCase):
     def test_unlimited_answer(self):
         self.a_distance.set_pos(10, 10)
         attack_output = self.a_distance.attack(self.test_unit)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
         self.assertIn(self.modify, attack_output)
         self.assertIn(self.answer_modify, attack_output[self.modify])
 
         attack_output = self.a_distance.attack(self.test_unit)
-        self.assertIn('self', attack_output)
+        self.assertIn('attacker', attack_output)
         self.assertIn(self.modify, attack_output)
         self.assertIn(self.answer_modify, attack_output[self.modify])
 

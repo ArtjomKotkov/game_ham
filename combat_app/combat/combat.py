@@ -1,21 +1,46 @@
 from django.forms.models import model_to_dict
 
-from ..models import Combat
+from ..models import Combat, COMBAT_STATUSES
 
 from .field import Fields
 from .hero.basic import Heroes
+from .combat_queue import CombatQueue
 
-def pre_action_validation(function):
+#Main decorators
+def pre_action_validation_stack(function):
     """
     Pre action validation, when combat must be started and war was began.
     """
+
     def wrap(*args, **kwargs):
         self = args[0]
         assert isinstance(self, Combats), 'Decorator must be used in Combats class.'
-        assert self.started == True, 'Combat must be started.'
-        assert self.in_battle == True, 'Combat status must be - in_battle.'
+        assert self.combat.is_started == True, 'Combat must be started.'
+        assert self.combat.status == 'inbattle', 'Combat status must be in battle.'
+        hero_id = args[1]
+        unit_id = args[2]
+        print(args)
+        assert self.queue.is_stack_turn(hero_id, unit_id), 'Invalid unit was provided!!!'
         output = function(*args, **kwargs)
         return output
+
+    return wrap
+
+def pre_action_validation_hero(function):
+    """
+    Pre action validation, when combat must be started and war was began.
+    """
+
+    def wrap(*args, **kwargs):
+        self = args[0]
+        assert isinstance(self, Combats), 'Decorator must be used in Combats class.'
+        assert self.combat.is_started == True, 'Combat must be started.'
+        assert self.combat.status == 'inbattle', 'Combat status must be in battle.'
+        hero_id = args[1]
+        assert self.combat.queue.is_hero_turn(hero_id), 'Invalid unit was provided!!!'
+        output = function(*args, **kwargs)
+        return output
+
     return wrap
 
 class Combats:
@@ -28,14 +53,12 @@ class Combats:
         self.field = Fields.get_field(battle_type=self.combat.battle_type, team_size=self.combat.team_size,
                                       name=self.combat.field)
         self.turn = 0
-        self.started = combat.started
-        self.status = combat.status
-        if combat.started == True:
+        if self.combat.is_started == True:
             self.start(force=True)
 
     @classmethod
     def create(cls, *, name, placement_time: int = 3, placement_type: str = 'EQ', battle_type: str = 'DF',
-               team_size: int = 1, started: bool = False, field: str):
+               team_size: int = 1, field: str = 'Simple'):
         assert Fields.check_field_is_aviable(battle_type=battle_type, team_size=team_size, name=field)[
             0], 'Invalid field name!'
         combat = Combat.objects.create(name=name,
@@ -43,101 +66,36 @@ class Combats:
                                        placement_type=placement_type,
                                        battle_type=battle_type,
                                        team_size=team_size,
-                                       started=started,
                                        field=field)
         return Combats(combat)
 
-    def next_turn(self):
-        pass
-
-    def set_name(self, name):
-        assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        self.combat.name = name
-        self.combat.save(update_fields=['name'])
-        self.name = name
-        return self
-
-    def get_all_stacks(self):
-        all_stacks = []
-        for hero in self.heroes.values():
-            all_stacks += hero.get_army().get_all_stacks()
-        return all_stacks
-
-    def get_hero(self, id):
-        assert hasattr(self, 'heroes'), 'No heroes in combat!'
-        return self.heroes[id]
-
-    def get_stack(self, hero_id, stack_id):
-        assert self.started == True, 'Combat must be started.'
-        return self.get_hero(hero_id).get_army().get_stack(stack_id)
-
-    def get_current_turn_unit(self):
-        return self.initiative_list[self._init_next() - 1]
-
-    def create_init_list(self):
-        assert self.started == True, 'Combat must be started.'
-        for id, hero in self.heroes.items():
-            self._add_hero_to_initiate_list(hero)
-            for stack in hero.get_army().get_all_stacks():
-                self._add_stack_to_initiate_list(stack)
-        self.sort_init_list()
-        self.current_unit = 0
-
-    def sort_init_list(self):
-        self.initiative_list.sort(key=lambda x: x['initiative'], reverse=True)
+    def set_status(self, status):
+        self.combat.set_status(status)
 
     def start(self, force=False):
         assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
         if not force:
-            assert self.started == False, 'Combat already started'
+            assert self.combat.is_started == False, 'Combat already started'
         # Initiate starting options
         self._gather_heroes()
         self._load_heroes_armyes()
+        self.set_status('load')
 
-        self.started = True
-        self.combat.started = True
-        self.combat.save(update_fields=['started'])
-
-        self.create_init_list()
+        setattr(self, 'queue', CombatQueue(combat=self))
 
     def combat_info(self):
 
-        if self.status == 'prepare':
-            return {
-                'battle_type': 'DF',
-                'placement_time': 3,
-                'team_size': 1,
-                'field': Fields.full_serialize(self.field)
-            }
-        elif self.status == 'in_battle':
-            return {
-                'battle_type': 'DF',
-                'placement_time': 3,
-                'team_size': 1,
-                'field': Fields.full_serialize(self.field),
+        dict_ = {
+            'battle_type': self.combat.battle_type,
+            'placement_time': self.combat.placement_time,
+            'team_size': self.combat.team_size,
+            'field': Fields.full_serialize(self.field)
+        }
+        if self.combat.status == 'inbattle':
+            dict_.update({
                 'heroes': {id: hero.start_serialize() for id, hero in self.heroes.items()}
-            }
-
-    def _init_next(self):
-        if self.current_unit + 1 == self.total_units:
-            self.current_unit = 0
-        else:
-            self.current_unit += 1
-        return self.current_unit
-
-    def _add_hero_to_initiate_list(self, hero):
-        self.initiative_list.append({
-            'object': hero,
-            'initiative': hero.initiative
-        })
-        self.total_units += 1
-
-    def _add_stack_to_initiate_list(self, stack):
-        self.initiative_list.append({
-            'object': stack,
-            'initiative': stack.unit.initiative
-        })
-        self.total_units += 1
+            })
+        return dict_
 
     def _gather_heroes(self):
         self.iter_id = 0
@@ -167,21 +125,20 @@ class Combats:
                 self.iter_id: Heroes.load_hero(hero, combat=self)
             }
 
-
     # Basic mechanics
-    @pre_action_validation
-    def unit_attack(self, attacker_hero_id, attacker_unit_id, enemy_hero_id, enemy_unit_id):
+    @pre_action_validation_stack
+    def stack_attack(self, attacker_hero_id, attacker_unit_id, enemy_hero_id, enemy_unit_id):
         attacker_stack = self.get_stack(attacker_hero_id, attacker_unit_id)
         enemy_stack = self.get_stack(enemy_hero_id, enemy_unit_id)
         return attacker_stack.attack(enemy_stack)
 
-    @pre_action_validation
+    @pre_action_validation_hero
     def hero_attack(self, attacker_hero_id, enemy_hero_id, enemy_unit_id):
         attacker_hero = self.get_hero(attacker_hero_id)
         enemy_stack = self.get_stack(enemy_hero_id, enemy_unit_id)
         return attacker_hero.attack(enemy_stack)
 
-    @pre_action_validation
+    @pre_action_validation_stack
     def unit_move(self, hero_id, unit_id, to_x, to_y):
         stack = self.get_stack(hero_id, unit_id)
 
@@ -196,3 +153,18 @@ class Combats:
                 assert x != to_x and y != to_y, 'This point isn\'t free,'
 
         return stack.move(to_x, to_y)
+
+    # Units queries.
+    def get_all_stacks(self):
+        all_stacks = []
+        for hero in self.heroes.values():
+            all_stacks += hero.get_army().get_all_stacks()
+        return all_stacks
+
+    def get_hero(self, id):
+        assert hasattr(self, 'heroes'), 'No heroes in combat!'
+        return self.heroes[id]
+
+    def get_stack(self, hero_id, stack_id):
+        assert self.combat.is_started == True, 'Combat must be started.'
+        return self.get_hero(hero_id).get_army().get_stack(stack_id)
