@@ -50,7 +50,7 @@ class Combat(models.Model):
             raise Error(check[1])
         return super().save(*args, **kwargs)
 
-    def delete_hero_from_combat(self, hero):
+    def delete_hero_from_combat(self, hero: Hero):
         team = ''
         if hero in self.left_team.all():
             self.left_team.remove(hero)
@@ -61,26 +61,25 @@ class Combat(models.Model):
         if hero in self.mg_team.all():
             self.mg_team.remove(hero)
             team = 'mg'
-        print(team)
         hero.in_battle = -1
         hero.save(update_fields=['in_battle'])
         return team
 
-    def add_hero_to_left_team(self, hero):
+    def add_hero_to_left_team(self, hero: Hero):
         assert self.battle_type == 'DF', 'Only default battle type provides left and right teams.'
         assert self.left_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
         self.left_team.add(hero)
         hero.in_battle = self.id
         hero.save(update_fields=['in_battle'])
 
-    def add_hero_to_right_team(self, hero):
+    def add_hero_to_right_team(self, hero: Hero):
         assert self.battle_type == 'DF', 'Only default combat type provides left and right teams.'
         assert self.right_team.count() <= self.team_size, f'Size of team in this combat can\'t be more then {self.team_size}'
         self.right_team.add(hero)
         hero.in_battle = self.id
         hero.save(update_fields=['in_battle'])
 
-    def add_hero_to_mg_team(self, hero):
+    def add_hero_to_mg_team(self, hero: Hero):
         """
         Add user on MeatGrinder combat.
         :param user:
@@ -92,14 +91,18 @@ class Combat(models.Model):
         hero.in_battle = self.id
         hero.save(update_fields=['in_battle'])
 
-    def add_to_random_team(self, hero):
+    def add_to_random_team(self, hero: Hero):
         if self.battle_type == 'MG':
             self.add_hero_to_mg_team(hero)
+            team = 'mg'
         else:
             if random.randrange(0, 1) == 0:
                 self.add_hero_to_left_team(hero)
+                team = 'left'
             else:
                 self.add_hero_to_right_team(hero)
+                team = 'right'
+        return team
 
     def hero_in_combat(self, hero):
         if hero in self.left_team.all() or \

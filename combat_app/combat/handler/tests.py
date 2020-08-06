@@ -7,7 +7,7 @@ from ..combat import Combats
 from ..combat_manager import CombatManager
 from ..unit.basic import UNIT_CLASSES
 from hero_app.models import Hero
-from .combat_handler import InCombatHandler
+from .incombat_handler import InCombatHandler
 
 
 class TestsHandler(TestCase):
@@ -52,4 +52,4 @@ class TestsHandler(TestCase):
         }
         outcome = InCombatHandler.read(example_request)
         self.assertIn('command_list', outcome)
-        pprint.pprint(outcome)
+        self.assertIn('attack', outcome)

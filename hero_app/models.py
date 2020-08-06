@@ -2,13 +2,16 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
+from combat_app.models import Combat
 from .levels import Levels
 from combat_app.combat.hero.basic import HEROES_CLASSES, HEROES_MODEL_CHOICES
 from combat_app.combat.unit.basic import UNIT_CLASSES
 
 
 class Hero(models.Model):
+    """Hero model, describes main characteristics of user's hero."""
     name = models.CharField(max_length=24, default='Странник')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='heroes', blank=True)
     attack = models.IntegerField(default=0)
@@ -117,6 +120,19 @@ class Hero(models.Model):
             self.army[unit] = count
         self.save()
 
+    def gain_exp(self, exp):
+        self.exp += exp
+        self.save(update_fields=['exp'])
+
+    def push_hero_in_battle(self, id):
+        combat = get_object_or_404(Combat, pk=id)
+        combat.add_to_random_team(self)
+
+    def release_hero_from_battle(self):
+        """Reset in_battle for current hero to -1."""
+        self.in_battle = -1
+        self.save(update_fields=['in_buttle'])
+
     def _set_unit_in_army(self, army, unit, count):
         assert unit in UNIT_CLASSES, 'Invalid unit class!'
         if count == 0:
@@ -139,7 +155,6 @@ class Hero(models.Model):
     def _del_unit_from_army(self, unit):
         if unit in self.army:
             del self.army[unit]
-
     @property
     def available_stacks(self):
         return HEROES_CLASSES[self.default].get_available_stacks(self.level)

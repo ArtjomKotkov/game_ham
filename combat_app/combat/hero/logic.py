@@ -1,3 +1,5 @@
+from django.shortcuts import reverse
+
 from ..army import Army
 
 
@@ -14,6 +16,7 @@ class HeroABS:
     background = ''
     step_additionals = []
     team = None
+    ready = False
 
     def get_hero(self):
         return self.hero if hasattr(self, 'hero') else None
@@ -63,7 +66,7 @@ class HeroABS:
             }
         )
 
-    def start_serialize(self):
+    def prepare_serialize(self):
         return dict(
             name=self.name,
             team=self.team,
@@ -78,6 +81,21 @@ class HeroABS:
                 'Сила заклинаний': self.spell_power,
                 'Инициатива': self.initiative
             }
+        )
+
+    def load_serialize(self):
+        assert hasattr(self, 'combat') and hasattr(self, 'hero'), 'Hero must be load successfuly.'
+        user = self.get_hero().user
+        return dict(
+            name=self.name,
+            ready=self.ready,
+            class_name=self.__class__.__name__,
+            image=self.image,
+            user=dict(
+                id=user.id,
+                name=user.name,
+                url=reverse('user:user_page', args=[user.name])
+            )
         )
 
     def base_attack(self, enemy_unit):
@@ -150,6 +168,9 @@ class HeroABS:
             'attrs': [-value],
             'steps': steps
         })
+
+    def turn_ready(self):
+        self.ready = True if self.ready == False else False
 
     def handle_turn(self):
         """

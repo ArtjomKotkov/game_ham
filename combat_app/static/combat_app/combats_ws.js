@@ -32,7 +32,6 @@ $(document).ready(function() {
 		},
 		template:`
 		<div>
-
 			<!-- default combat, free placement -->
 			<div v-if='combat.battle_type == "DF" && combat.placement_type == "FR"' class='d-flex flex-row justify-content-center combat-box' @click.prevent='show_' ref='combat'>
 				<div class='d-flex flex-row justify-content-center items-align-center'>
@@ -293,9 +292,9 @@ $(document).ready(function() {
 			onmessage: function (event) {
 				this.loaded = true;
 				var data = JSON.parse(event.data);
-				console.log(data)
-				if ('created' in data) {
-					this.create(data.created);
+				console.log(data);
+				if ('create' in data) {
+					this.create(data.create);
 				} else if ('basic' in data) {
 					this.combats = data.basic;
 				} else if ('exit' in data) {
@@ -319,6 +318,7 @@ $(document).ready(function() {
 				if (this.$root.user.heroapp.selected_hero.id == data.hero_id) {
 					this.$root.user.heroapp.selected_hero.in_battle = data.combat.id;
 				}
+
 			},
 			exit_user: function (data) {
 				if (data.team == 'left') {
@@ -348,6 +348,7 @@ $(document).ready(function() {
 				}
 			},
 			connect: function(data) {
+				console.log(data)
 				if (data.team == 'left') {
 					this.combats[data.combat_index].left_team.push({
 						'id': data.hero_id,
