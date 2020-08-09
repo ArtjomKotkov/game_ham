@@ -7,6 +7,7 @@ from .models import Combat
 from .serializers import CombatFullSerializer
 from .combat.combat_manager import CombatManager
 from .combat.handler.list_combat_handler import ListCombatHandler
+from .combat.handler.incombat_handler import InCombatHandler
 
 
 class CombatsConsumer(JsonWebsocketConsumer):
@@ -68,11 +69,13 @@ class CombatConsumer(JsonWebsocketConsumer):
                                                         self.channel_name)
 
     def receive_json(self, content, **kwargs):
-        if 'command' in content:
-            if content['command'] == 'load_battle':
-                pk = int(self.scope["url_route"]["kwargs"]["pk"])
-                combat = CombatManager().get_combat(pk)
-                self.group_message(combat.combat_info())
+        self.group_message(InCombatHandler.read(content))
+
+        # if 'command' in content:
+        #     if content['command'] == 'load_battle':
+        #         pk = int(self.scope["url_route"]["kwargs"]["pk"])
+        #         combat = CombatManager().get_combat(pk)
+        #         self.group_message(combat.combat_info())
 
 
 

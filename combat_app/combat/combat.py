@@ -100,10 +100,12 @@ class Combats:
 
     def _base_serializer(self):
         return {
+            'id': self.combat.id,
             'battle_type': self.combat.battle_type,
             'placement_time': self.combat.placement_time,
             'team_size': self.combat.team_size,
-            'field': Fields.full_serialize(self.field)
+            'field': Fields.full_serialize(self.field),
+            'status': self.combat.status
         }
 
     def _load_status_serializer(self):
@@ -132,13 +134,30 @@ class Combats:
     def stack_attack(self, attacker_hero_id, attacker_unit_id, enemy_hero_id, enemy_unit_id):
         attacker_stack = self.get_stack(attacker_hero_id, attacker_unit_id)
         enemy_stack = self.get_stack(enemy_hero_id, enemy_unit_id)
-        return attacker_stack.attack(enemy_stack)
+        return {
+            'self': {
+                'hero_id': attacker_hero_id,
+                'unit_id': attacker_unit_id
+            },
+            'enemy': {
+                'hero_id': enemy_hero_id,
+                'unit_id': enemy_unit_id
+            },
+            'data': attacker_stack.base_attack(enemy_stack)
+        }
 
     @pre_action_validation_hero
     def hero_attack(self, attacker_hero_id, enemy_hero_id, enemy_unit_id):
         attacker_hero = self.get_hero(attacker_hero_id)
         enemy_stack = self.get_stack(enemy_hero_id, enemy_unit_id)
-        return attacker_hero.attack(enemy_stack)
+        return {
+            'hero_id': attacker_hero_id,
+            'enemy': {
+                'hero_id': enemy_hero_id,
+                'unit_id': enemy_unit_id
+            },
+            'data': attacker_hero.attack(enemy_stack)
+        }
 
     @pre_action_validation_stack
     def unit_move(self, hero_id, unit_id, to_x, to_y):
@@ -183,16 +202,15 @@ class Combats:
 
     def _gather_heroes(self):
         self.iter_id = 0
-
         for hero in self.combat.left_team.all():
-            self._create_hero_id(hero)
-            setattr(hero, 'team', 'left')
+            hero_model = self._create_hero_id(hero)
+            setattr(hero_model, 'team', 'left')
         for hero in self.combat.right_team.all():
-            self._create_hero_id(hero)
-            setattr(hero, 'team', 'right')
+            hero_model = self._create_hero_id(hero)
+            setattr(hero_model, 'team', 'right')
         for hero in self.combat.mg_team.all():
-            self._create_hero_id(hero)
-            setattr(hero, 'team', 'mg')
+            hero_model = self._create_hero_id(hero)
+            setattr(hero_model, 'team', 'mg')
 
     def _validate_teams(self):
 
@@ -228,26 +246,28 @@ class Combats:
             hero.gather_army()
 
     def _create_hero_id(self, hero):
+        hero = Heroes.load_hero(hero, combat=self)
         if hasattr(self, 'heroes'):
             self.iter_id += 1
             self.heroes.update({
-                self.iter_id: Heroes.load_hero(hero, combat=self)
+                self.iter_id: hero
             })
         else:
             self.heroes = {
-                self.iter_id: Heroes.load_hero(hero, combat=self)
+                self.iter_id: hero
             }
+        return hero
 
     def start(self, force=False):
         """Start combat, set status loading, wait for connect ready of all players."""
         assert hasattr(self, 'combat'), 'Combat instance doesn\'t provided.'
-        assert self.combat.status == None, 'Current status must be None.'
         if not force:
+            assert self.combat.status == None, 'Current status must be None.'
             assert self.combat.is_started == False, 'Combat already started'
+            self.set_status('load')
         # Initiate starting options
         self._gather_heroes()
         self._load_heroes_armyes()
-        self.set_status('load')
 
     def start_preparing_stage(self):
         """Change status to prepare, for placing units."""

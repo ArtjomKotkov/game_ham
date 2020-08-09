@@ -21,7 +21,8 @@ def cobmat(request, pk):
     if not combat.is_started:
         return HttpResponseForbidden()
     context = {
-        'combat_pk': pk
+        'combat_pk': pk,
+        
     }
     return render(request, 'combat_app/combat_page.html', context)
 

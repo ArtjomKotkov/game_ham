@@ -86,15 +86,17 @@ class HeroABS:
     def load_serialize(self):
         assert hasattr(self, 'combat') and hasattr(self, 'hero'), 'Hero must be load successfuly.'
         user = self.get_hero().user
+        print(self)
         return dict(
-            name=self.name,
+            class_name=self.name,
             ready=self.ready,
-            class_name=self.__class__.__name__,
+            name=self.hero.name,
             image=self.image,
+            team=self.team,
             user=dict(
                 id=user.id,
-                name=user.name,
-                url=reverse('user:user_page', args=[user.name])
+                name=user.username,
+                url=reverse('user:user_page', args=[user.username])
             )
         )
 
@@ -171,6 +173,7 @@ class HeroABS:
 
     def turn_ready(self):
         self.ready = True if self.ready == False else False
+        return self.ready
 
     def handle_turn(self):
         """

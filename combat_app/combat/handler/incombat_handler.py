@@ -6,25 +6,23 @@ from ..combat_manager import CombatManager
 
 
 class InCombatHandler:
-
     manager = CombatManager()
 
     @staticmethod
     def read(request):
         assert isinstance(request, dict), 'request must be dict instance.'
 
-        combat = InCombatHandler._init_combat(request)
         outcome = {}
+        combat = InCombatHandler._init_combat(request)
 
         if 'action' in request:
-            outcome.update(ActionHandler(combat).read(request['action']))
+            outcome.setdefault('action', {}).update(ActionHandler(combat).read(request['action']))
 
         if 'command' in request:
-            outcome.update(CommandHandler(combat).read(request['command']))
+            outcome.setdefault('command', {}).update(CommandHandler(combat).read(request['command']))
 
         if 'system' in request:
-            outcome.update(SystemHandler(combat).read(request['system']))
-
+            outcome.setdefault('system', {}).update(SystemHandler(combat).read(request['system']))
         return outcome
 
     @classmethod
@@ -32,7 +30,6 @@ class InCombatHandler:
         """Get combat instance for further using."""
         assert 'combat_id' in request, 'You must provide combat_id in request'
         return cls.manager.get_combat(request['combat_id'])
-
 
 
 def func_name_adder(func):
@@ -46,10 +43,9 @@ def func_name_adder(func):
     return first_wrapper
 
 
-
 class BaseHandler:
 
-    def __init__(self, combat):
+    def __init__(self, combat=None):
         self.outcome = {}
         self.combat = combat
 
@@ -101,7 +97,7 @@ class ActionHandler(BaseHandler):
 
         elif request['unit_type'] == 'hero':
             return self.combat.hero_attack(request['attacker_hero_id'], request['enemy_hero_id'],
-                                            request['enemy_unit_id'])
+                                           request['enemy_unit_id'])
 
     @func_name_adder
     def move(self, request):
@@ -119,11 +115,25 @@ class ActionHandler(BaseHandler):
             'unit_id': request['unit_id']
         }
 
+
 class CommandHandler(BaseHandler):
     """Handle commands from console."""
 
     def read(self, request):
-        pass
+        if 'set_ready' in request:
+            self.set_ready(request['set_ready'])
+
+        return self.outcome
+
+    @func_name_adder
+    def set_ready(self, request):
+        assert 'hero_id' in request, 'hero_id must be provided.'
+        hero = self.combat.get_hero(request['hero_id'])
+        ready = hero.turn_ready()
+        return {
+            'hero_id': request['hero_id'],
+            'ready': ready
+        }
 
 
 class SystemHandler(BaseHandler):
@@ -132,14 +142,14 @@ class SystemHandler(BaseHandler):
     def read(self, request):
 
         if 'list' in request:
-            self.command_list(request['list'])
+            self.list(request['list'])
         if 'attr' in request:
-            self.command_attr(request['attr'])
+            self.attr(request['attr'])
         return self.outcome
 
     # List functions.
     @func_name_adder
-    def command_list(self, request):
+    def list(self, request):
         """Handle all commands which don't require any arguments."""
         outcome = []
         for command in request:
@@ -170,6 +180,6 @@ class SystemHandler(BaseHandler):
 
     # Attr functions.
     @func_name_adder
-    def command_attr(self, request):
+    def attr(self, request):
         """Handle all commands which require and arguments."""
         pass

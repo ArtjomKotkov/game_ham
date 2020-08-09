@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
-from combat_app.models import Combat
 from .levels import Levels
 from combat_app.combat.hero.basic import HEROES_CLASSES, HEROES_MODEL_CHOICES
 from combat_app.combat.unit.basic import UNIT_CLASSES
@@ -124,8 +123,7 @@ class Hero(models.Model):
         self.exp += exp
         self.save(update_fields=['exp'])
 
-    def push_hero_in_battle(self, id):
-        combat = get_object_or_404(Combat, pk=id)
+    def push_hero_in_battle(self, combat):
         combat.add_to_random_team(self)
 
     def release_hero_from_battle(self):

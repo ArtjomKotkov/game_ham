@@ -11,9 +11,10 @@ class CombatManager:
         return cls.instance
 
     def add_combat(self, combat: Combats):
-        self.current_combats.update({
-            f'combat_{combat.combat.id}': combat
-        })
+        if f'combat_{combat.combat.id}' not in self.current_combats:
+            self.current_combats.update({
+                f'combat_{combat.combat.id}': combat
+            })
 
     def del_combat(self, pk):
         assert f'combat_{pk}' in self.current_combats, 'Combat with that id not exist.'

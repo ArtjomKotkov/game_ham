@@ -39,12 +39,6 @@ class TestPerm(permissions.BasePermission):
         user = request.user
         return True
 
-    def has_object_permission(self, request, view, obj):
-        """
-        Return `True` if permission is granted, `False` otherwise.
-        """
-        return True if request.user == obj.user else False
-
 
 class CustomAPIView(APIView):
     short_serializer = None
