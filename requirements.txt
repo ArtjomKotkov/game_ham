@@ -9,7 +9,7 @@ cryptography==3.0
 daphne==2.5.0
 Django==3.1
 django-rest-framework==0.1.0
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 hyperlink==20.0.0
 idna==2.10
 incremental==17.5.0
